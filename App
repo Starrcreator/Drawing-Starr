@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TracePro Station</title>
+    
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#000000">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+
+    <style>
+        body { margin: 0; background: #000; overflow: hidden; font-family: sans-serif; height: 100vh; width: 100vw; touch-action: none; }
+        #ui-panel { 
+            position: absolute; top: 10px; left: 10px; z-index: 100; 
+            background: rgba(20, 20, 20, 0.95); padding: 15px; border-radius: 12px; 
+            color: white; width: 250px; border: 1px solid #444; pointer-events: auto;
+            max-height: 85vh; overflow-y: auto;
+        }
+        .hidden { display: none !important; }
+        #stage { position: relative; width: 100vw; height: 100vh; overflow: hidden; z-index: 1; }
+        #display-image { position: absolute; top: 50%; left: 50%; display: none; transform-origin: center center; will-change: transform; pointer-events: auto; }
+        #lock-shield { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 150; display: none; }
+        #unlock-btn {
+            position: fixed; top: 15px; right: 15px; z-index: 200;
+            width: 65px; height: 65px; background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255,255,255,0.4); border-radius: 50%;
+            color: white; font-size: 10px; display: none; align-items: center; justify-content: center; text-align: center; backdrop-filter: blur(8px);
+        }
+        label { display: block; margin-top: 10px; font-size: 10px; color: #007AFF; font-weight: bold; text-transform: uppercase; }
+        select, input[type="range"] { width: 100%; margin-top: 5px; }
+        .btn-row { display: flex; gap: 5px; margin-top: 10px; flex-wrap: wrap; }
+        button { flex: 1; min-width: 45%; padding: 10px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 10px; }
+        .blue-btn { background: #007AFF; color: white; width: 100%; margin-top: 10px; padding: 14px; font-size: 13px; }
+        .gray-btn { background: #444; color: white; }
+        .yellow-btn { background: #ffcc00; color: #000; width: 100%; margin-top: 10px; }
+        .check-row { display: flex; align-items: center; margin-top: 10px; font-size: 11px; gap: 10px; }
+        input[type="checkbox"] { width: 18px; height: 18px; }
+    </style>
+</head>
+<body>
+
+    <div id="ui-panel">
+        <label>1. Image Source</label>
+        <input type="file" id="upload" accept="image/*">
+        
+        <label>2. Section & Zoom (<span id="zoomVal">2.0</span>x)</label>
+        <select id="quadrant">
+            <option value="full">Full Image</option>
+            <option value="tl">Top Left</option>
+            <option value="tr">Top Right</option>
+            <option value="bl">Bottom Left</option>
+            <option value="br">Bottom Right</option>
+        </select>
+        <input type="range" id="zoomRange" min="1.0" max="5.0" step="0.1" value="2.0">
+
+        <label>3. Controls</label>
+        <div class="btn-row">
+            <button class="gray-btn" onclick="rotateImg()">ROTATE 90°</button>
+            <button class="gray-btn" onclick="flipImg()">FLIP HORIZ</button>
+        </div>
+        
+        <div class="check-row">
+            <input type="checkbox" id="invertToggle">
+            <label style="margin:0; color:white;">INVERT COLORS</label>
+        </div>
+
+        <label>4. Filters</label>
+        <input type="range" id="lineWeight" min="20" max="200" value="100">
+        <input type="range" id="contrast" min="100" max="1000" value="300">
+        
+        <button class="yellow-btn" id="peek-btn">HOLD TO PEEK COLOR</button>
+
+        <div class="btn-row">
+            <button class="gray-btn" onclick="resetAll()">RESET POS</button>
+            <button class="blue-btn" onclick="lockApp()">LOCK & START</button>
+        </div>
+    </div>
+
+    <div id="unlock-btn" ondblclick="unlockApp()">DBL TAP<br>UNLOCK</div>
+    <div id="lock-shield"></div>
+
+    <div id="stage">
+        <img id="display-image" draggable="false">
+    </div>
+
+    <script>
+        const upload = document.getElementById('upload');
+        const img = document.getElementById('display-image');
+        const ui = document.getElementById('ui-panel');
+        const shield = document.getElementById('lock-shield');
+        const unlockBtn = document.getElementById('unlock-btn');
+        const peekBtn = document.getElementById('peek-btn');
+        const invertToggle = document.getElementById('invertToggle');
+        
+        let panX = 0, panY = 0, startX = 0, startY = 0, isDragging = false, isPeeking = false;
+        let rotation = 0, flip = 1, wakeLock = null;
+
+        // Wake Lock Logic (Prevents screen sleep)
+        const requestWakeLock = async () => {
+            try {
+                if ('wakeLock' in navigator) {
+                    wakeLock = await navigator.wakeLock.request('screen');
+                }
+            } catch (err) { console.error(`${err.name}, ${err.message}`); }
+        };
+
+        upload.onchange = (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                img.src = URL.createObjectURL(file);
+                img.style.display = 'block';
+                img.onload = () => { resetAll(); updateView(); };
+            }
+        };
+
+        function updateView() {
+            if (!img.src) return;
+            const zoom = parseFloat(document.getElementById('zoomRange').value);
+            document.getElementById('zoomVal').innerText = zoom.toFixed(1);
+            const mode = document.getElementById('quadrant').value;
+
+            img.style.width = (mode === "full") ? "100vw" : (zoom * 100) + "vw";
+            img.style.height = (mode === "full") ? "100vh" : (zoom * 100) + "vh";
+            img.style.objectFit = "contain";
+            
+            let qX = 0, qY = 0;
+            if (mode === "tr") qX = -50;
+            if (mode === "bl") qY = -50;
+            if (mode === "br") { qX = -50; qY = -50; }
+
+            img.style.transform = `translate(-50%, -50%) translate(${qX}%, ${qY}%) translate(${panX}px, ${panY}px) rotate(${rotation}deg) scaleX(${flip})`;
+
+            if (isPeeking) {
+                img.style.filter = "none";
+            } else {
+                const con = document.getElementById('contrast').value;
+                const weight = document.getElementById('lineWeight').value;
+                const inv = invertToggle.checked ? 'invert(100%)' : 'invert(0%)';
+                img.style.filter = `grayscale(100%) contrast(${con}%) brightness(${weight}%) ${inv}`;
+            }
+        }
+
+        function rotateImg() { rotation = (rotation + 90) % 360; updateView(); }
+        function flipImg() { flip *= -1; updateView(); }
+        function resetAll() { panX = 0; panY = 0; rotation = 0; flip = 1; updateView(); }
+
+        img.addEventListener('touchstart', (e) => {
+            if (shield.style.display === 'block') return;
+            isDragging = true;
+            startX = e.touches[0].clientX - panX;
+            startY = e.touches[0].clientY - panY;
+        });
+
+        window.addEventListener('touchmove', (e) => {
+            if (!isDragging) return;
+            panX = e.touches[0].clientX - startX;
+            panY = e.touches[0].clientY - startY;
+            updateView();
+        });
+
+        window.addEventListener('touchend', () => isDragging = false);
+
+        peekBtn.ontouchstart = (e) => { e.preventDefault(); isPeeking = true; updateView(); };
+        peekBtn.ontouchend = () => { isPeeking = false; updateView(); };
+
+        document.querySelectorAll('input, select').forEach(el => el.oninput = updateView);
+
+        function lockApp() {
+            if (!img.src) return;
+            ui.classList.add('hidden');
+            shield.style.display = 'block';
+            unlockBtn.style.display = 'flex';
+            requestWakeLock(); // Activate wake lock
+            if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen();
+        }
+
+        async function unlockApp() {
+            ui.classList.remove('hidden');
+            shield.style.display = 'none';
+            unlockBtn.style.display = 'none';
+            if (wakeLock !== null) {
+                await wakeLock.release();
+                wakeLock = null;
+            }
+            if (document.exitFullscreen) document.exitFullscreen();
+        }
+    </script>
+</body>
+</html>
