@@ -4,8 +4,8 @@
   "description": "Unleash your creativity with Drawing Starr, the ultimate digital lightbox. Turn your device into a powerful tracing tool with precision locking, image filters, and smart zoom features to perfect your sketches and illustrations.",
   "start_url": "index.html",
   "display": "standalone",
-  "background_color": "#000000",
-  "theme_color": "#000000",
+  "background_color": "#c73333",
+  "theme_color": "#3a8d43",
   "icons": [
     {
       "src": "icon-512.png",
@@ -19,5 +19,14 @@
       "type": "image/png",
       "purpose": "maskable"
     }
+  ],
+  "id": "Firstapp",
+  "lang": "en",
+  "categories": [
+    "education",
+    "entertainment",
+    "kids",
+    "productivity",
+    "utilities"
   ]
 }
