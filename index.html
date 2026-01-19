@@ -11,13 +11,14 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
 
     <style>
-        body { margin: 0; background: #000; overflow: hidden; font-family: sans-serif; height: 100vh; width: 100vw; touch-action: none; }
+        body { margin: 0; background: #111; overflow: hidden; font-family: sans-serif; height: 100vh; width: 100vw; touch-action: none; }
         
         #ui-panel { 
             position: absolute; top: 10px; left: 10px; z-index: 100; 
             background: rgba(20, 20, 20, 0.95); padding: 15px; border-radius: 12px; 
             color: white; width: 250px; border: 1px solid #444; pointer-events: auto;
             max-height: 85vh; overflow-y: auto;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5); /* Added shadow for better separation */
         }
 
         #upload { display: none; }
@@ -28,28 +29,15 @@
             cursor: pointer; box-sizing: border-box;
         }
 
-        /* UPDATED COMPACT GRID */
         .grid-container {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 4px;
-            margin: 15px auto;
-            width: 110px; 
-            aspect-ratio: 1 / 1;
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px;
+            margin: 15px auto; width: 110px; aspect-ratio: 1 / 1;
         }
         .grid-btn {
-            background: #333;
-            border: 1px solid #555;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: all 0.2s;
+            background: #333; border: 1px solid #555; border-radius: 4px; cursor: pointer; transition: all 0.2s;
         }
         .grid-btn:active { background: #555; }
-        .grid-btn.active {
-            background: #007AFF;
-            border-color: #007AFF;
-            box-shadow: 0 0 8px rgba(0,122,255,0.5);
-        }
+        .grid-btn.active { background: #007AFF; border-color: #007AFF; box-shadow: 0 0 8px rgba(0,122,255,0.5); }
 
         #tutorial-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
@@ -62,14 +50,23 @@
         #stage { 
             position: relative; width: 100vw; height: 100vh; overflow: hidden; z-index: 1; 
             display: flex; justify-content: center; align-items: center;
+            background: #000;
+        }
+
+        /* NEW: Placeholder Background Style */
+        #placeholder-bg {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            object-fit: cover;
+            z-index: 0; /* Sit behind everything */
+            opacity: 0.5; /* Dim it down */
+            filter: blur(8px) grayscale(40%); /* Blur so it doesn't distract */
+            pointer-events: none;
         }
         
         #display-image { 
-            max-width: 100vw; max-height: 100vh; 
-            width: auto; height: auto;
-            display: none; 
-            will-change: transform; 
-            transform-origin: center center;
+            max-width: 100vw; max-height: 100vh; width: auto; height: auto; display: none; 
+            will-change: transform; transform-origin: center center;
+            z-index: 2; /* Sit on top of placeholder */
         }
         
         #lock-shield { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 150; display: none; }
@@ -111,7 +108,8 @@
             <button class="grid-btn" onclick="setGrid('tm', 1)"></button>
             <button class="grid-btn" onclick="setGrid('tr', 2)"></button>
             <button class="grid-btn" onclick="setGrid('ml', 3)"></button>
-            <button class="grid-btn" onclick="setGrid('c', 4)"></button> <button class="grid-btn" onclick="setGrid('mr', 5)"></button>
+            <button class="grid-btn" onclick="setGrid('c', 4)"></button>
+            <button class="grid-btn" onclick="setGrid('mr', 5)"></button>
             <button class="grid-btn" onclick="setGrid('bl', 6)"></button>
             <button class="grid-btn" onclick="setGrid('bm', 7)"></button>
             <button class="grid-btn" onclick="setGrid('br', 8)"></button>
@@ -147,6 +145,7 @@
     <div id="lock-shield"></div>
 
     <div id="stage">
+        <img id="placeholder-bg" src="https://images.unsplash.com/photo-1513364776144-60967b0f800f?q=80&w=1920&auto=format&fit=crop" alt="Art Background">
         <img id="display-image" draggable="false">
     </div>
 
@@ -154,6 +153,8 @@
         const upload = document.getElementById('upload');
         const uploadLabel = document.getElementById('upload-label');
         const img = document.getElementById('display-image');
+        // Get reference to the new placeholder
+        const placeholderBg = document.getElementById('placeholder-bg');
         const ui = document.getElementById('ui-panel');
         const shield = document.getElementById('lock-shield');
         const unlockBtn = document.getElementById('unlock-btn');
@@ -193,7 +194,7 @@
             buttons[btnIdx].classList.add('active');
 
             panX = 0; panY = 0;
-            zoomRange.value = 3.0; // All buttons zoom in to 3x now
+            zoomRange.value = 3.0; 
             updateView();
         }
 
@@ -203,6 +204,8 @@
                 uploadLabel.innerText = "✓ " + (file.name.length > 15 ? file.name.substring(0, 15) + "..." : file.name);
                 img.src = URL.createObjectURL(file);
                 img.style.display = 'block';
+                // HIDE THE PLACEHOLDER BACKGROUND
+                placeholderBg.style.display = 'none';
                 img.onload = () => { resetAll(); };
             }
         };
@@ -230,7 +233,6 @@
         function rotateImg() { rotation = (rotation + 90) % 360; updateView(); }
         function flipImg() { flip *= -1; updateView(); }
         
-        // UPDATED RESET FUNCTION
         function resetAll() { 
             panX = 0; panY = 0; rotation = 0; flip = 1; 
             gridMode = 'none'; 
@@ -239,7 +241,6 @@
             updateView(); 
         }
 
-        // Touch handling
         img.addEventListener('touchstart', (e) => {
             if (shield.style.display === 'block') return;
             isDragging = true;
