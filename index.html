@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TracePro Station</title>
+    <title>Drawing Starr</title>
     
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#000000">
@@ -12,34 +12,60 @@
 
     <style>
         body { margin: 0; background: #000; overflow: hidden; font-family: sans-serif; height: 100vh; width: 100vw; touch-action: none; }
+        
+        /* UI Panel */
         #ui-panel { 
             position: absolute; top: 10px; left: 10px; z-index: 100; 
             background: rgba(20, 20, 20, 0.95); padding: 15px; border-radius: 12px; 
             color: white; width: 250px; border: 1px solid #444; pointer-events: auto;
             max-height: 85vh; overflow-y: auto;
         }
+
+        /* Tutorial Overlay */
+        #tutorial-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.9); z-index: 1000; 
+            display: flex; align-items: center; justify-content: center; 
+            color: white; text-align: center; padding: 20px; box-sizing: border-box;
+        }
+        #tutorial-content { max-width: 300px; }
+
         .hidden { display: none !important; }
         #stage { position: relative; width: 100vw; height: 100vh; overflow: hidden; z-index: 1; }
         #display-image { position: absolute; top: 50%; left: 50%; display: none; transform-origin: center center; will-change: transform; pointer-events: auto; }
+        
         #lock-shield { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 150; display: none; }
+        
         #unlock-btn {
             position: fixed; top: 15px; right: 15px; z-index: 200;
             width: 65px; height: 65px; background: rgba(255, 255, 255, 0.1);
             border: 2px solid rgba(255,255,255,0.4); border-radius: 50%;
             color: white; font-size: 10px; display: none; align-items: center; justify-content: center; text-align: center; backdrop-filter: blur(8px);
         }
+
         label { display: block; margin-top: 10px; font-size: 10px; color: #007AFF; font-weight: bold; text-transform: uppercase; }
         select, input[type="range"] { width: 100%; margin-top: 5px; }
         .btn-row { display: flex; gap: 5px; margin-top: 10px; flex-wrap: wrap; }
         button { flex: 1; min-width: 45%; padding: 10px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 10px; }
+        
         .blue-btn { background: #007AFF; color: white; width: 100%; margin-top: 10px; padding: 14px; font-size: 13px; }
         .gray-btn { background: #444; color: white; }
         .yellow-btn { background: #ffcc00; color: #000; width: 100%; margin-top: 10px; }
+        .help-btn { background: transparent; color: #888; border: 1px solid #444; margin-top: 20px; width: 100%; }
+        
         .check-row { display: flex; align-items: center; margin-top: 10px; font-size: 11px; gap: 10px; }
         input[type="checkbox"] { width: 18px; height: 18px; }
     </style>
 </head>
 <body>
+
+    <div id="tutorial-overlay">
+        <div id="tutorial-content">
+            <h2 id="tut-title" style="color: #007AFF; margin-bottom: 10px;">Drawing Starr</h2>
+            <p id="tut-text" style="font-size: 14px; line-height: 1.6; min-height: 80px;">Your Starr-branded lightbox for perfect tracing and sketches.</p>
+            <button onclick="nextStep()" id="tut-btn" style="background: #007AFF; color: white; border: none; padding: 15px 40px; border-radius: 8px; font-weight: bold; margin-top: 20px;">NEXT</button>
+        </div>
+    </div>
 
     <div id="ui-panel">
         <label>1. Image Source</label>
@@ -76,6 +102,8 @@
             <button class="gray-btn" onclick="resetAll()">RESET POS</button>
             <button class="blue-btn" onclick="lockApp()">LOCK & START</button>
         </div>
+
+        <button class="help-btn" onclick="startTutorial()">SHOW TUTORIAL AGAIN</button>
     </div>
 
     <div id="unlock-btn" ondblclick="unlockApp()">DBL TAP<br>UNLOCK</div>
@@ -93,11 +121,45 @@
         const unlockBtn = document.getElementById('unlock-btn');
         const peekBtn = document.getElementById('peek-btn');
         const invertToggle = document.getElementById('invertToggle');
+        const tutOverlay = document.getElementById('tutorial-overlay');
         
         let panX = 0, panY = 0, startX = 0, startY = 0, isDragging = false, isPeeking = false;
         let rotation = 0, flip = 1, wakeLock = null;
 
-        // Wake Lock Logic (Prevents screen sleep)
+        // --- Tutorial Logic ---
+        let currentStep = 0;
+        const steps = [
+            { title: "Welcome to Drawing Starr", text: "Turn your device into a high-visibility lightbox. Place paper over the screen and start your masterpiece." },
+            { title: "1. Select Artwork", text: "Upload any photo. Use the Zoom and Quadrant settings to isolate the part you want to draw." },
+            { title: "2. Line Optimization", text: "Adjust Contrast and Line Weight to reveal hidden details. Use Invert for dark backgrounds." },
+            { title: "3. Quick Peek", text: "Hold the yellow PEEK button to see the original reference colors without moving your paper." },
+            { title: "4. Lock Your Canvas", text: "Tap 'LOCK & START' to freeze the screen. This ensures your hand won't move the image while tracing." },
+            { title: "5. Master the Unlock", text: "Need the menu back? DOUBLE TAP the floating circle in the top right corner." }
+        ];
+
+        function startTutorial() {
+            currentStep = 0;
+            tutOverlay.style.display = 'flex';
+            updateTutorialStep();
+        }
+
+        function nextStep() {
+            currentStep++;
+            if (currentStep < steps.length) {
+                updateTutorialStep();
+            } else {
+                tutOverlay.style.display = 'none';
+                localStorage.setItem('drawingstarr_onboarded', 'true');
+            }
+        }
+
+        function updateTutorialStep() {
+            document.getElementById('tut-title').innerText = steps[currentStep].title;
+            document.getElementById('tut-text').innerText = steps[currentStep].text;
+            document.getElementById('tut-btn').innerText = (currentStep === steps.length - 1) ? "LET'S DRAW" : "NEXT";
+        }
+
+        // --- Wake Lock Logic ---
         const requestWakeLock = async () => {
             try {
                 if ('wakeLock' in navigator) {
@@ -106,6 +168,7 @@
             } catch (err) { console.error(`${err.name}, ${err.message}`); }
         };
 
+        // --- Image Handling ---
         upload.onchange = (e) => {
             const file = e.target.files[0];
             if (file) {
@@ -146,6 +209,7 @@
         function flipImg() { flip *= -1; updateView(); }
         function resetAll() { panX = 0; panY = 0; rotation = 0; flip = 1; updateView(); }
 
+        // --- Touch Interactions ---
         img.addEventListener('touchstart', (e) => {
             if (shield.style.display === 'block') return;
             isDragging = true;
@@ -167,12 +231,13 @@
 
         document.querySelectorAll('input, select').forEach(el => el.oninput = updateView);
 
+        // --- App State ---
         function lockApp() {
             if (!img.src) return;
             ui.classList.add('hidden');
             shield.style.display = 'block';
             unlockBtn.style.display = 'flex';
-            requestWakeLock(); // Activate wake lock
+            requestWakeLock();
             if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen();
         }
 
@@ -186,6 +251,15 @@
             }
             if (document.exitFullscreen) document.exitFullscreen();
         }
+
+        // --- Initial Load ---
+        window.onload = () => {
+            if (localStorage.getItem('drawingstarr_onboarded')) {
+                tutOverlay.style.display = 'none';
+            } else {
+                startTutorial();
+            }
+        };
     </script>
 </body>
 </html>
