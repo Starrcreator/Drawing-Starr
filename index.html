@@ -13,7 +13,6 @@
     <style>
         body { margin: 0; background: #000; overflow: hidden; font-family: sans-serif; height: 100vh; width: 100vw; touch-action: none; }
         
-        /* Main UI Panel */
         #ui-panel { 
             position: absolute; top: 10px; left: 10px; z-index: 100; 
             background: rgba(20, 20, 20, 0.95); padding: 15px; border-radius: 12px; 
@@ -29,13 +28,13 @@
             cursor: pointer; box-sizing: border-box;
         }
 
-        /* COMPACT GRID SELECTOR */
+        /* UPDATED COMPACT GRID */
         .grid-container {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 4px;
             margin: 15px auto;
-            width: 110px; /* This makes it significantly smaller (about 25% of the panel width) */
+            width: 110px; 
             aspect-ratio: 1 / 1;
         }
         .grid-btn {
@@ -44,7 +43,6 @@
             border-radius: 4px;
             cursor: pointer;
             transition: all 0.2s;
-            display: flex; align-items: center; justify-content: center;
         }
         .grid-btn:active { background: #555; }
         .grid-btn.active {
@@ -52,12 +50,7 @@
             border-color: #007AFF;
             box-shadow: 0 0 8px rgba(0,122,255,0.5);
         }
-        .grid-btn-center::after {
-            content: 'RESET';
-            font-size: 7px; color: white; font-weight: bold;
-        }
 
-        /* Tutorial & Overlays */
         #tutorial-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
             background: rgba(0,0,0,0.9); z-index: 1000; 
@@ -66,7 +59,6 @@
         }
         .hidden { display: none !important; }
 
-        /* Stage Handling */
         #stage { 
             position: relative; width: 100vw; height: 100vh; overflow: hidden; z-index: 1; 
             display: flex; justify-content: center; align-items: center;
@@ -88,7 +80,6 @@
             color: white; font-size: 10px; display: none; align-items: center; justify-content: center; text-align: center; backdrop-filter: blur(8px);
         }
 
-        /* UI Controls */
         label { display: block; margin-top: 10px; font-size: 10px; color: #007AFF; font-weight: bold; text-transform: uppercase; }
         input[type="range"] { width: 100%; margin-top: 5px; cursor: pointer; }
         .btn-row { display: flex; gap: 5px; margin-top: 10px; flex-wrap: wrap; }
@@ -120,8 +111,7 @@
             <button class="grid-btn" onclick="setGrid('tm', 1)"></button>
             <button class="grid-btn" onclick="setGrid('tr', 2)"></button>
             <button class="grid-btn" onclick="setGrid('ml', 3)"></button>
-            <button class="grid-btn grid-btn-center active" onclick="setGrid('c', 4)"></button>
-            <button class="grid-btn" onclick="setGrid('mr', 5)"></button>
+            <button class="grid-btn" onclick="setGrid('c', 4)"></button> <button class="grid-btn" onclick="setGrid('mr', 5)"></button>
             <button class="grid-btn" onclick="setGrid('bl', 6)"></button>
             <button class="grid-btn" onclick="setGrid('bm', 7)"></button>
             <button class="grid-btn" onclick="setGrid('br', 8)"></button>
@@ -142,15 +132,13 @@
         </div>
 
         <label>4. Filters</label>
-        <label style="color: #888; font-size: 8px;">LINE WEIGHT</label>
         <input type="range" id="lineWeight" min="20" max="200" value="100">
-        <label style="color: #888; font-size: 8px;">CONTRAST</label>
         <input type="range" id="contrast" min="100" max="1000" value="300">
         
         <button class="yellow-btn" id="peek-btn">HOLD TO PEEK COLOR</button>
 
         <div class="btn-row">
-            <button class="gray-btn" onclick="resetAll()">RESET POS</button>
+            <button class="gray-btn" onclick="resetAll()" style="background: #D32F2F;">RESET VIEW</button>
             <button class="blue-btn" onclick="lockApp()">LOCK & START</button>
         </div>
     </div>
@@ -175,17 +163,15 @@
         const zoomRange = document.getElementById('zoomRange');
         
         let panX = 0, panY = 0, startX = 0, startY = 0, isDragging = false, isPeeking = false;
-        let rotation = 0, flip = 1, gridMode = 'c';
+        let rotation = 0, flip = 1, gridMode = 'none';
 
         // --- Tutorial ---
         let currentStep = 0;
         const steps = [
-            { title: "Welcome to Drawing Starr", text: "Turn your device into a lightbox. Place paper over the screen and start tracing." },
+            { title: "Welcome to Drawing Starr", text: "Turn your device into a lightbox for perfect tracing." },
             { title: "1. Select Artwork", text: "Upload any photo from your gallery." },
-            { title: "2. Grid Focus", text: "Tap the tiny squares in the grid to zoom into that corner instantly." },
-            { title: "3. Filters", text: "Use Line Weight and Contrast to make outlines visible through your paper." },
-            { title: "4. Lock Canvas", text: "Tap 'LOCK & START' to freeze the image while you draw." },
-            { title: "5. Return", text: "Double-tap the floating circle to bring back the menu." }
+            { title: "2. Grid Focus", text: "Tap a square to zoom in. Use 'RESET VIEW' to see the whole image again." },
+            { title: "3. Lock & Start", text: "Tap 'LOCK & START' to freeze the image." }
         ];
 
         function nextStep() {
@@ -202,17 +188,15 @@
         // --- Grid Logic ---
         function setGrid(mode, btnIdx) {
             gridMode = mode;
-            // UI Highlighting
             const buttons = document.querySelectorAll('.grid-btn');
             buttons.forEach(b => b.classList.remove('active'));
             buttons[btnIdx].classList.add('active');
 
             panX = 0; panY = 0;
-            zoomRange.value = (mode === 'c') ? 1.0 : 3.0; // Auto-zoom to 3x on selection
+            zoomRange.value = 3.0; // All buttons zoom in to 3x now
             updateView();
         }
 
-        // --- Image Handling ---
         upload.onchange = (e) => {
             const file = e.target.files[0];
             if (file) {
@@ -228,7 +212,6 @@
             const zoom = parseFloat(zoomRange.value);
             document.getElementById('zoomVal').innerText = zoom.toFixed(1);
 
-            // Calculate Transform Origin based on the selected grid piece
             let originX = "50%", originY = "50%";
             if (gridMode.includes('t')) originY = "0%";
             if (gridMode.includes('b')) originY = "100%";
@@ -236,11 +219,8 @@
             if (gridMode.includes('r')) originX = "100%";
             
             img.style.transformOrigin = `${originX} ${originY}`;
-            
-            // Apply Transform
             img.style.transform = `scale(${zoom}) translate(${panX / zoom}px, ${panY / zoom}px) rotate(${rotation}deg) scaleX(${flip})`;
 
-            // Filters
             const con = document.getElementById('contrast').value;
             const weight = document.getElementById('lineWeight').value;
             const inv = invertToggle.checked ? 'invert(100%)' : 'invert(0%)';
@@ -249,9 +229,17 @@
 
         function rotateImg() { rotation = (rotation + 90) % 360; updateView(); }
         function flipImg() { flip *= -1; updateView(); }
-        function resetAll() { panX = 0; panY = 0; rotation = 0; flip = 1; setGrid('c', 4); }
+        
+        // UPDATED RESET FUNCTION
+        function resetAll() { 
+            panX = 0; panY = 0; rotation = 0; flip = 1; 
+            gridMode = 'none'; 
+            zoomRange.value = 1.0; 
+            document.querySelectorAll('.grid-btn').forEach(b => b.classList.remove('active'));
+            updateView(); 
+        }
 
-        // --- Touch ---
+        // Touch handling
         img.addEventListener('touchstart', (e) => {
             if (shield.style.display === 'block') return;
             isDragging = true;
@@ -273,20 +261,17 @@
 
         document.querySelectorAll('input, select').forEach(el => el.oninput = updateView);
 
-        // --- Lock / Unlock ---
         function lockApp() {
             if (!img.src) return;
             ui.classList.add('hidden');
             shield.style.display = 'block';
             unlockBtn.style.display = 'flex';
-            if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen();
         }
 
         function unlockApp() {
             ui.classList.remove('hidden');
             shield.style.display = 'none';
             unlockBtn.style.display = 'none';
-            if (document.exitFullscreen) document.exitFullscreen();
         }
 
         window.onload = () => {
