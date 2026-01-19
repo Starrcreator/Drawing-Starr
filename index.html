@@ -59,7 +59,6 @@
         .blue-btn { background: #007AFF; color: white; width: 100%; margin-top: 10px; padding: 14px; font-size: 13px; }
         .gray-btn { background: #444; color: white; }
         .yellow-btn { background: #ffcc00; color: #000; width: 100%; margin-top: 10px; }
-        .help-btn { background: transparent; color: #888; border: 1px solid #444; margin-top: 20px; width: 100%; }
         
         .check-row { display: flex; align-items: center; margin-top: 10px; font-size: 11px; gap: 10px; }
     </style>
@@ -131,10 +130,111 @@
         const tutOverlay = document.getElementById('tutorial-overlay');
         
         let panX = 0, panY = 0, startX = 0, startY = 0, isDragging = false, isPeeking = false;
-        let rotation = 0, flip = 1, wakeLock = null;
+        let rotation = 0, flip = 1;
 
         // --- Tutorial Logic ---
         let currentStep = 0;
         const steps = [
             { title: "Welcome to Drawing Starr", text: "Turn your device into a lightbox. Place paper over the screen and start tracing." },
-            { title: "1. Select Artwork", text: "Upload any photo. Use Zoom
+            { title: "1. Select Artwork", text: "Upload any photo. Use Zoom and Quadrants to focus on details." },
+            { title: "2. Line Optimization", text: "Adjust Contrast and Line Weight to make edges pop." },
+            { title: "3. Quick Peek", text: "Hold the yellow button to see original colors." },
+            { title: "4. Lock & Start", text: "Lock the screen to prevent accidental movement while drawing." },
+            { title: "5. Double Tap Unlock", text: "Double tap the circle in the top right to bring the menu back." }
+        ];
+
+        function nextStep() {
+            currentStep++;
+            if (currentStep < steps.length) {
+                document.getElementById('tut-title').innerText = steps[currentStep].title;
+                document.getElementById('tut-text').innerText = steps[currentStep].text;
+            } else {
+                tutOverlay.style.display = 'none';
+                localStorage.setItem('drawingstarr_onboarded', 'true');
+            }
+        }
+
+        // --- Image Handling ---
+        upload.onchange = (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                uploadLabel.innerText = "✓ " + (file.name.length > 15 ? file.name.substring(0, 15) + "..." : file.name);
+                img.src = URL.createObjectURL(file);
+                img.style.display = 'block';
+                img.onload = () => { resetAll(); updateView(); };
+            }
+        };
+
+        function updateView() {
+            if (!img.src || img.naturalWidth === 0) return;
+            const zoom = parseFloat(document.getElementById('zoomRange').value);
+            document.getElementById('zoomVal').innerText = zoom.toFixed(1);
+            const mode = document.getElementById('quadrant').value;
+
+            // Fix for portrait/landscape: Ensure image fills screen when zoomed
+            img.style.width = (mode === "full") ? "100vw" : (zoom * 100) + "vw";
+            img.style.height = (mode === "full") ? "100vh" : (zoom * 100) + "vh";
+            img.style.objectFit = (mode === "full") ? "contain" : "cover";
+            
+            // Fixed Quadrant Positioning using object-position
+            if (mode === "full") {
+                img.style.objectPosition = "center center";
+                img.style.transform = `translate(-50%, -50%) translate(${panX}px, ${panY}px) rotate(${rotation}deg) scaleX(${flip})`;
+            } else {
+                const positions = {
+                    "tl": "0% 0%",
+                    "tr": "100% 0%",
+                    "bl": "0% 100%",
+                    "br": "100% 100%"
+                };
+                img.style.objectPosition = positions[mode];
+                img.style.transform = `translate(-50%, -50%) translate(${panX}px, ${panY}px) rotate(${rotation}deg) scaleX(${flip})`;
+            }
+
+            const inv = invertToggle.checked ? 'invert(100%)' : 'invert(0%)';
+            img.style.filter = isPeeking ? "none" : `grayscale(100%) contrast(${document.getElementById('contrast').value}%) brightness(${document.getElementById('lineWeight').value}%) ${inv}`;
+        }
+
+        function rotateImg() { rotation = (rotation + 90) % 360; updateView(); }
+        function flipImg() { flip *= -1; updateView(); }
+        function resetAll() { panX = 0; panY = 0; rotation = 0; flip = 1; updateView(); }
+
+        img.addEventListener('touchstart', (e) => {
+            if (shield.style.display === 'block') return;
+            isDragging = true;
+            startX = e.touches[0].clientX - panX;
+            startY = e.touches[0].clientY - panY;
+        });
+
+        window.addEventListener('touchmove', (e) => {
+            if (!isDragging) return;
+            panX = e.touches[0].clientX - startX;
+            panY = e.touches[0].clientY - startY;
+            updateView();
+        });
+
+        window.addEventListener('touchend', () => isDragging = false);
+
+        peekBtn.ontouchstart = (e) => { e.preventDefault(); isPeeking = true; updateView(); };
+        peekBtn.ontouchend = () => { isPeeking = false; updateView(); };
+
+        document.querySelectorAll('input, select').forEach(el => el.oninput = updateView);
+
+        function lockApp() {
+            ui.classList.add('hidden');
+            shield.style.display = 'block';
+            unlockBtn.style.display = 'flex';
+        }
+
+        function unlockApp() {
+            ui.classList.remove('hidden');
+            shield.style.display = 'none';
+            unlockBtn.style.display = 'none';
+        }
+
+        window.onload = () => {
+            if (localStorage.getItem('drawingstarr_onboarded')) tutOverlay.style.display = 'none';
+        };
+    </script>
+</body>
+</html>
