@@ -21,6 +21,26 @@
             max-height: 85vh; overflow-y: auto;
         }
 
+        /* Improved Image Selection UI */
+        #upload { display: none; }
+        .custom-file-upload {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            margin-top: 8px;
+            background: #1c1c1e;
+            border: 2px dashed #007AFF;
+            border-radius: 8px;
+            color: #007AFF;
+            text-align: center;
+            font-weight: bold;
+            font-size: 11px;
+            cursor: pointer;
+            box-sizing: border-box;
+            transition: background 0.3s;
+        }
+        .custom-file-upload:active { background: rgba(0, 122, 255, 0.1); }
+
         /* Tutorial Overlay */
         #tutorial-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
@@ -32,7 +52,7 @@
 
         .hidden { display: none !important; }
         #stage { position: relative; width: 100vw; height: 100vh; overflow: hidden; z-index: 1; }
-        #display-image { position: absolute; top: 50%; left: 50%; display: none; transform-origin: center center; will-change: transform; pointer-events: auto; }
+        #display-image { position: absolute; top: 50%; left: 50%; display: none; transform-origin: center center; border: none; outline: none; }
         
         #lock-shield { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 150; display: none; }
         
@@ -69,6 +89,7 @@
 
     <div id="ui-panel">
         <label>1. Image Source</label>
+        <label for="upload" class="custom-file-upload" id="upload-label">+ CHOOSE IMAGE</label>
         <input type="file" id="upload" accept="image/*">
         
         <label>2. Section & Zoom (<span id="zoomVal">2.0</span>x)</label>
@@ -115,6 +136,7 @@
 
     <script>
         const upload = document.getElementById('upload');
+        const uploadLabel = document.getElementById('upload-label');
         const img = document.getElementById('display-image');
         const ui = document.getElementById('ui-panel');
         const shield = document.getElementById('lock-shield');
@@ -172,6 +194,7 @@
         upload.onchange = (e) => {
             const file = e.target.files[0];
             if (file) {
+                uploadLabel.innerText = "✓ " + (file.name.length > 15 ? file.name.substring(0, 15) + "..." : file.name);
                 img.src = URL.createObjectURL(file);
                 img.style.display = 'block';
                 img.onload = () => { resetAll(); updateView(); };
