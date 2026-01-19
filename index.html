@@ -37,9 +37,16 @@
 
         .hidden { display: none !important; }
         #stage { position: relative; width: 100vw; height: 100vh; overflow: hidden; z-index: 1; }
+        
+        /* THE FIX: Remove fixed centering and let object-fit handle the viewport */
         #display-image { 
-            position: absolute; top: 50%; left: 50%; display: none; 
-            transform-origin: center center; will-change: transform; 
+            position: absolute; 
+            top: 0; 
+            left: 0; 
+            width: 100vw; 
+            height: 100vh; 
+            display: none; 
+            will-change: transform; 
         }
         
         #lock-shield { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 150; display: none; }
@@ -171,15 +178,13 @@
             document.getElementById('zoomVal').innerText = zoom.toFixed(1);
             const mode = document.getElementById('quadrant').value;
 
-            // Fix for portrait/landscape: Ensure image fills screen when zoomed
-            img.style.width = (mode === "full") ? "100vw" : (zoom * 100) + "vw";
-            img.style.height = (mode === "full") ? "100vh" : (zoom * 100) + "vh";
+            // Set size to 100% of viewport and use scale for zooming
+            img.style.width = "100vw";
+            img.style.height = "100vh";
             img.style.objectFit = (mode === "full") ? "contain" : "cover";
             
-            // Fixed Quadrant Positioning using object-position
             if (mode === "full") {
                 img.style.objectPosition = "center center";
-                img.style.transform = `translate(-50%, -50%) translate(${panX}px, ${panY}px) rotate(${rotation}deg) scaleX(${flip})`;
             } else {
                 const positions = {
                     "tl": "0% 0%",
@@ -188,8 +193,10 @@
                     "br": "100% 100%"
                 };
                 img.style.objectPosition = positions[mode];
-                img.style.transform = `translate(-50%, -50%) translate(${panX}px, ${panY}px) rotate(${rotation}deg) scaleX(${flip})`;
             }
+
+            // Corrected transform: apply zoom (scale) first, then manual panning
+            img.style.transform = `scale(${zoom}) translate(${panX / zoom}px, ${panY / zoom}px) rotate(${rotation}deg) scaleX(${flip})`;
 
             const inv = invertToggle.checked ? 'invert(100%)' : 'invert(0%)';
             img.style.filter = isPeeking ? "none" : `grayscale(100%) contrast(${document.getElementById('contrast').value}%) brightness(${document.getElementById('lineWeight').value}%) ${inv}`;
