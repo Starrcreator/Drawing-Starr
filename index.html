@@ -13,39 +13,44 @@
     <style>
         body { margin: 0; background: #111; overflow: hidden; font-family: sans-serif; height: 100vh; width: 100vw; touch-action: none; }
         
+        /* NEW: Compact & Transparent UI Panel */
         #ui-panel { 
             position: absolute; top: 10px; left: 10px; z-index: 100; 
-            background: rgba(20, 20, 20, 0.95); padding: 15px; border-radius: 12px; 
-            color: white; width: 250px; border: 1px solid #444; pointer-events: auto;
+            background: rgba(20, 20, 20, 0.7); /* Reduced opacity for transparency */
+            backdrop-filter: blur(8px); /* Subtle blur behind the menu */
+            padding: 10px; /* More compact padding */
+            border-radius: 12px; 
+            color: white; width: 220px; /* Slimmer width */
+            border: 1px solid rgba(255, 255, 255, 0.1); 
+            pointer-events: auto;
             max-height: 85vh; overflow-y: auto;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5); /* Added shadow for better separation */
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            transition: opacity 0.3s ease;
         }
+
+        /* Ghost effect: fades slightly when not in use */
+        #ui-panel:not(:hover) { opacity: 0.8; }
 
         #upload { display: none; }
         .custom-file-upload {
-            display: block; width: 100%; padding: 12px; margin-top: 8px;
-            background: #1c1c1e; border: 2px dashed #007AFF; border-radius: 8px;
-            color: #007AFF; text-align: center; font-weight: bold; font-size: 11px;
+            display: block; width: 100%; padding: 10px; margin-top: 5px;
+            background: rgba(28, 28, 30, 0.6); border: 1.5px dashed #007AFF; border-radius: 8px;
+            color: #007AFF; text-align: center; font-weight: bold; font-size: 10px;
             cursor: pointer; box-sizing: border-box;
         }
 
+        /* NEW: Smaller Grid Interface */
         .grid-container {
-            display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px;
-            margin: 15px auto; width: 110px; aspect-ratio: 1 / 1;
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px;
+            margin: 10px auto; width: 90px; /* Reduced from 110px */
+            aspect-ratio: 1 / 1;
         }
         .grid-btn {
-            background: #333; border: 1px solid #555; border-radius: 4px; cursor: pointer; transition: all 0.2s;
+            background: rgba(51, 51, 51, 0.5); border: 1px solid #555; border-radius: 4px; 
+            cursor: pointer; transition: all 0.2s; height: 28px;
         }
         .grid-btn:active { background: #555; }
         .grid-btn.active { background: #007AFF; border-color: #007AFF; box-shadow: 0 0 8px rgba(0,122,255,0.5); }
-
-        #tutorial-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: rgba(0,0,0,0.9); z-index: 1000; 
-            display: flex; align-items: center; justify-content: center; 
-            color: white; text-align: center; padding: 20px; box-sizing: border-box;
-        }
-        .hidden { display: none !important; }
 
         #stage { 
             position: relative; width: 100vw; height: 100vh; overflow: hidden; z-index: 1; 
@@ -53,56 +58,44 @@
             background: #000;
         }
 
-        /* NEW: Placeholder Background Style */
         #placeholder-bg {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            object-fit: cover;
-            z-index: 0; /* Sit behind everything */
-            opacity: 0.5; /* Dim it down */
-            filter: blur(8px) grayscale(40%); /* Blur so it doesn't distract */
+            object-fit: cover; z-index: 0; opacity: 0.4; filter: blur(8px) grayscale(40%);
             pointer-events: none;
         }
         
         #display-image { 
             max-width: 100vw; max-height: 100vh; width: auto; height: auto; display: none; 
-            will-change: transform; transform-origin: center center;
-            z-index: 2; /* Sit on top of placeholder */
+            will-change: transform; transform-origin: center center; z-index: 2;
         }
         
+        label { display: block; margin-top: 8px; font-size: 9px; color: #007AFF; font-weight: bold; text-transform: uppercase; }
+        input[type="range"] { width: 100%; margin-top: 3px; cursor: pointer; height: 12px; }
+        .btn-row { display: flex; gap: 5px; margin-top: 8px; flex-wrap: wrap; }
+        button { flex: 1; min-width: 45%; padding: 8px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 9px; }
+        .blue-btn { background: #007AFF; color: white; width: 100%; margin-top: 8px; padding: 12px; font-size: 11px; }
+        .gray-btn { background: rgba(68, 68, 68, 0.7); color: white; }
+        .yellow-btn { background: #ffcc00; color: #000; width: 100%; margin-top: 8px; }
+        .check-row { display: flex; align-items: center; margin-top: 8px; font-size: 10px; gap: 8px; }
+
+        /* Lock / Unlock UI */
         #lock-shield { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 150; display: none; }
         #unlock-btn {
             position: fixed; top: 15px; right: 15px; z-index: 200;
-            width: 65px; height: 65px; background: rgba(255, 255, 255, 0.1);
+            width: 60px; height: 60px; background: rgba(255, 255, 255, 0.1);
             border: 2px solid rgba(255,255,255,0.4); border-radius: 50%;
-            color: white; font-size: 10px; display: none; align-items: center; justify-content: center; text-align: center; backdrop-filter: blur(8px);
+            color: white; font-size: 9px; display: none; align-items: center; justify-content: center; text-align: center; backdrop-filter: blur(8px);
         }
-
-        label { display: block; margin-top: 10px; font-size: 10px; color: #007AFF; font-weight: bold; text-transform: uppercase; }
-        input[type="range"] { width: 100%; margin-top: 5px; cursor: pointer; }
-        .btn-row { display: flex; gap: 5px; margin-top: 10px; flex-wrap: wrap; }
-        button { flex: 1; min-width: 45%; padding: 10px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 10px; }
-        .blue-btn { background: #007AFF; color: white; width: 100%; margin-top: 10px; padding: 14px; font-size: 13px; }
-        .gray-btn { background: #444; color: white; }
-        .yellow-btn { background: #ffcc00; color: #000; width: 100%; margin-top: 10px; }
-        .check-row { display: flex; align-items: center; margin-top: 10px; font-size: 11px; gap: 10px; }
     </style>
 </head>
 <body>
-
-    <div id="tutorial-overlay">
-        <div id="tutorial-content">
-            <h2 id="tut-title" style="color: #007AFF;">Drawing Starr</h2>
-            <p id="tut-text">Your Starr-branded lightbox for perfect tracing.</p>
-            <button onclick="nextStep()" id="tut-btn" class="blue-btn">NEXT</button>
-        </div>
-    </div>
 
     <div id="ui-panel">
         <label>1. Image Source</label>
         <label for="upload" class="custom-file-upload" id="upload-label">+ CHOOSE IMAGE</label>
         <input type="file" id="upload" accept="image/*">
         
-        <label>2. Focus Grid (Tap to Zoom)</label>
+        <label>2. Focus Grid</label>
         <div class="grid-container" id="grid-box">
             <button class="grid-btn" onclick="setGrid('tl', 0)"></button>
             <button class="grid-btn" onclick="setGrid('tm', 1)"></button>
@@ -153,46 +146,20 @@
         const upload = document.getElementById('upload');
         const uploadLabel = document.getElementById('upload-label');
         const img = document.getElementById('display-image');
-        // Get reference to the new placeholder
         const placeholderBg = document.getElementById('placeholder-bg');
         const ui = document.getElementById('ui-panel');
         const shield = document.getElementById('lock-shield');
         const unlockBtn = document.getElementById('unlock-btn');
         const peekBtn = document.getElementById('peek-btn');
         const invertToggle = document.getElementById('invertToggle');
-        const tutOverlay = document.getElementById('tutorial-overlay');
         const zoomRange = document.getElementById('zoomRange');
         
         let panX = 0, panY = 0, startX = 0, startY = 0, isDragging = false, isPeeking = false;
         let rotation = 0, flip = 1, gridMode = 'none';
 
-        // --- Tutorial ---
-        let currentStep = 0;
-        const steps = [
-            { title: "Welcome to Drawing Starr", text: "Turn your device into a lightbox for perfect tracing." },
-            { title: "1. Select Artwork", text: "Upload any photo from your gallery." },
-            { title: "2. Grid Focus", text: "Tap a square to zoom in. Use 'RESET VIEW' to see the whole image again." },
-            { title: "3. Lock & Start", text: "Tap 'LOCK & START' to freeze the image." }
-        ];
-
-        function nextStep() {
-            currentStep++;
-            if (currentStep < steps.length) {
-                document.getElementById('tut-title').innerText = steps[currentStep].title;
-                document.getElementById('tut-text').innerText = steps[currentStep].text;
-            } else {
-                tutOverlay.style.display = 'none';
-                localStorage.setItem('drawingstarr_onboarded', 'true');
-            }
-        }
-
-        // --- Grid Logic ---
         function setGrid(mode, btnIdx) {
             gridMode = mode;
-            const buttons = document.querySelectorAll('.grid-btn');
-            buttons.forEach(b => b.classList.remove('active'));
-            buttons[btnIdx].classList.add('active');
-
+            document.querySelectorAll('.grid-btn').forEach((b, i) => b.classList.toggle('active', i === btnIdx));
             panX = 0; panY = 0;
             zoomRange.value = 3.0; 
             updateView();
@@ -204,7 +171,6 @@
                 uploadLabel.innerText = "✓ " + (file.name.length > 15 ? file.name.substring(0, 15) + "..." : file.name);
                 img.src = URL.createObjectURL(file);
                 img.style.display = 'block';
-                // HIDE THE PLACEHOLDER BACKGROUND
                 placeholderBg.style.display = 'none';
                 img.onload = () => { resetAll(); };
             }
@@ -241,6 +207,7 @@
             updateView(); 
         }
 
+        // Dragging & Filter events
         img.addEventListener('touchstart', (e) => {
             if (shield.style.display === 'block') return;
             isDragging = true;
@@ -256,28 +223,22 @@
         });
 
         window.addEventListener('touchend', () => isDragging = false);
-
         peekBtn.ontouchstart = (e) => { e.preventDefault(); isPeeking = true; updateView(); };
         peekBtn.ontouchend = () => { isPeeking = false; updateView(); };
-
         document.querySelectorAll('input, select').forEach(el => el.oninput = updateView);
 
         function lockApp() {
             if (!img.src) return;
-            ui.classList.add('hidden');
+            ui.style.display = 'none';
             shield.style.display = 'block';
             unlockBtn.style.display = 'flex';
         }
 
         function unlockApp() {
-            ui.classList.remove('hidden');
+            ui.style.display = 'block';
             shield.style.display = 'none';
             unlockBtn.style.display = 'none';
         }
-
-        window.onload = () => {
-            if (localStorage.getItem('drawingstarr_onboarded')) tutOverlay.style.display = 'none';
-        };
     </script>
 </body>
 </html>
