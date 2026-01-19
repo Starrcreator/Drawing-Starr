@@ -13,7 +13,6 @@
     <style>
         body { margin: 0; background: #000; overflow: hidden; font-family: sans-serif; height: 100vh; width: 100vw; touch-action: none; }
         
-        /* UI Panel */
         #ui-panel { 
             position: absolute; top: 10px; left: 10px; z-index: 100; 
             background: rgba(20, 20, 20, 0.95); padding: 15px; border-radius: 12px; 
@@ -21,45 +20,26 @@
             max-height: 85vh; overflow-y: auto;
         }
 
-        /* Improved Image Selection UI */
         #upload { display: none; }
         .custom-file-upload {
-            display: block;
-            width: 100%;
-            padding: 12px;
-            margin-top: 8px;
-            background: #1c1c1e;
-            border: 2px dashed #007AFF;
-            border-radius: 8px;
-            color: #007AFF;
-            text-align: center;
-            font-weight: bold;
-            font-size: 11px;
-            cursor: pointer;
-            box-sizing: border-box;
-            transition: background 0.3s;
+            display: block; width: 100%; padding: 12px; margin-top: 8px;
+            background: #1c1c1e; border: 2px dashed #007AFF; border-radius: 8px;
+            color: #007AFF; text-align: center; font-weight: bold; font-size: 11px;
+            cursor: pointer; box-sizing: border-box;
         }
-        .custom-file-upload:active { background: rgba(0, 122, 255, 0.1); }
 
-        /* Tutorial Overlay */
         #tutorial-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
             background: rgba(0,0,0,0.9); z-index: 1000; 
             display: flex; align-items: center; justify-content: center; 
             color: white; text-align: center; padding: 20px; box-sizing: border-box;
         }
-        #tutorial-content { max-width: 300px; }
 
         .hidden { display: none !important; }
         #stage { position: relative; width: 100vw; height: 100vh; overflow: hidden; z-index: 1; }
         #display-image { 
-            position: absolute; 
-            top: 50%; 
-            left: 50%; 
-            display: none; 
-            transform-origin: center center; 
-            will-change: transform; 
-            pointer-events: auto; 
+            position: absolute; top: 50%; left: 50%; display: none; 
+            transform-origin: center center; will-change: transform; 
         }
         
         #lock-shield { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 150; display: none; }
@@ -72,7 +52,7 @@
         }
 
         label { display: block; margin-top: 10px; font-size: 10px; color: #007AFF; font-weight: bold; text-transform: uppercase; }
-        select, input[type="range"] { width: 100%; margin-top: 5px; background: #333; color: white; border: 1px solid #444; border-radius: 4px; padding: 4px; }
+        select, input[type="range"] { width: 100%; margin-top: 5px; background: #333; color: white; border: 1px solid #444; border-radius: 4px; }
         .btn-row { display: flex; gap: 5px; margin-top: 10px; flex-wrap: wrap; }
         button { flex: 1; min-width: 45%; padding: 10px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 10px; }
         
@@ -82,16 +62,15 @@
         .help-btn { background: transparent; color: #888; border: 1px solid #444; margin-top: 20px; width: 100%; }
         
         .check-row { display: flex; align-items: center; margin-top: 10px; font-size: 11px; gap: 10px; }
-        input[type="checkbox"] { width: 18px; height: 18px; }
     </style>
 </head>
 <body>
 
     <div id="tutorial-overlay">
         <div id="tutorial-content">
-            <h2 id="tut-title" style="color: #007AFF; margin-bottom: 10px;">Drawing Starr</h2>
-            <p id="tut-text" style="font-size: 14px; line-height: 1.6; min-height: 80px;">Your Starr-branded lightbox for perfect tracing and sketches.</p>
-            <button onclick="nextStep()" id="tut-btn" style="background: #007AFF; color: white; border: none; padding: 15px 40px; border-radius: 8px; font-weight: bold; margin-top: 20px;">NEXT</button>
+            <h2 id="tut-title" style="color: #007AFF;">Drawing Starr</h2>
+            <p id="tut-text">Your Starr-branded lightbox for perfect tracing.</p>
+            <button onclick="nextStep()" id="tut-btn" class="blue-btn">NEXT</button>
         </div>
     </div>
 
@@ -122,9 +101,7 @@
         </div>
 
         <label>4. Filters</label>
-        <label style="color: #888; font-size: 8px;">LINE WEIGHT</label>
         <input type="range" id="lineWeight" min="20" max="200" value="100">
-        <label style="color: #888; font-size: 8px;">CONTRAST</label>
         <input type="range" id="contrast" min="100" max="1000" value="300">
         
         <button class="yellow-btn" id="peek-btn">HOLD TO PEEK COLOR</button>
@@ -133,8 +110,6 @@
             <button class="gray-btn" onclick="resetAll()">RESET POS</button>
             <button class="blue-btn" onclick="lockApp()">LOCK & START</button>
         </div>
-
-        <button class="help-btn" onclick="startTutorial()">SHOW TUTORIAL AGAIN</button>
     </div>
 
     <div id="unlock-btn" ondblclick="unlockApp()">DBL TAP<br>UNLOCK</div>
@@ -161,144 +136,5 @@
         // --- Tutorial Logic ---
         let currentStep = 0;
         const steps = [
-            { title: "Welcome to Drawing Starr", text: "Turn your device into a high-visibility lightbox. Place paper over the screen and start your masterpiece." },
-            { title: "1. Select Artwork", text: "Upload any photo. Use the Zoom and Quadrant settings to isolate the part you want to draw." },
-            { title: "2. Line Optimization", text: "Adjust Contrast and Line Weight to reveal hidden details. Use Invert for dark backgrounds." },
-            { title: "3. Quick Peek", text: "Hold the yellow PEEK button to see the original reference colors without moving your paper." },
-            { title: "4. Lock Your Canvas", text: "Tap 'LOCK & START' to freeze the screen. This ensures your hand won't move the image while tracing." },
-            { title: "5. Master the Unlock", text: "Need the menu back? DOUBLE TAP the floating circle in the top right corner." }
-        ];
-
-        function startTutorial() {
-            currentStep = 0;
-            tutOverlay.style.display = 'flex';
-            updateTutorialStep();
-        }
-
-        function nextStep() {
-            currentStep++;
-            if (currentStep < steps.length) {
-                updateTutorialStep();
-            } else {
-                tutOverlay.style.display = 'none';
-                localStorage.setItem('drawingstarr_onboarded', 'true');
-            }
-        }
-
-        function updateTutorialStep() {
-            document.getElementById('tut-title').innerText = steps[currentStep].title;
-            document.getElementById('tut-text').innerText = steps[currentStep].text;
-            document.getElementById('tut-btn').innerText = (currentStep === steps.length - 1) ? "LET'S DRAW" : "NEXT";
-        }
-
-        // --- Wake Lock Logic ---
-        const requestWakeLock = async () => {
-            try {
-                if ('wakeLock' in navigator) {
-                    wakeLock = await navigator.wakeLock.request('screen');
-                }
-            } catch (err) { console.error(`${err.name}, ${err.message}`); }
-        };
-
-        // --- Image Handling ---
-        upload.onchange = (e) => {
-            const file = e.target.files[0];
-            if (file) {
-                uploadLabel.innerText = "✓ " + (file.name.length > 15 ? file.name.substring(0, 15) + "..." : file.name);
-                img.src = URL.createObjectURL(file);
-                img.style.display = 'block';
-                img.onload = () => { resetAll(); updateView(); };
-            }
-        };
-
-        function updateView() {
-            if (!img.src) return;
-            const zoom = parseFloat(document.getElementById('zoomRange').value);
-            document.getElementById('zoomVal').innerText = zoom.toFixed(1);
-            const mode = document.getElementById('quadrant').value;
-
-            // Set size based on zoom
-            img.style.width = (mode === "full") ? "100vw" : (zoom * 100) + "vw";
-            img.style.height = (mode === "full") ? "100vh" : (zoom * 100) + "vh";
-            img.style.objectFit = "contain";
-            
-            // Fixed Quadrant Math: Use 25% steps to center the specific quadrant
-            let qX = 0, qY = 0;
-            if (mode !== "full") {
-                if (mode === "tl") { qX = 25; qY = 25; }
-                if (mode === "tr") { qX = -25; qY = 25; }
-                if (mode === "bl") { qX = 25; qY = -25; }
-                if (mode === "br") { qX = -25; qY = -25; }
-            }
-
-            // Apply transforms: Centering + Quadrant offset + Manual Pan + Rotations
-            img.style.transform = `translate(-50%, -50%) translate(${qX * 2}%, ${qY * 2}%) translate(${panX}px, ${panY}px) rotate(${rotation}deg) scaleX(${flip})`;
-
-            if (isPeeking) {
-                img.style.filter = "none";
-            } else {
-                const con = document.getElementById('contrast').value;
-                const weight = document.getElementById('lineWeight').value;
-                const inv = invertToggle.checked ? 'invert(100%)' : 'invert(0%)';
-                img.style.filter = `grayscale(100%) contrast(${con}%) brightness(${weight}%) ${inv}`;
-            }
-        }
-
-        function rotateImg() { rotation = (rotation + 90) % 360; updateView(); }
-        function flipImg() { flip *= -1; updateView(); }
-        function resetAll() { panX = 0; panY = 0; rotation = 0; flip = 1; updateView(); }
-
-        // --- Touch Interactions ---
-        img.addEventListener('touchstart', (e) => {
-            if (shield.style.display === 'block') return;
-            isDragging = true;
-            startX = e.touches[0].clientX - panX;
-            startY = e.touches[0].clientY - panY;
-        });
-
-        window.addEventListener('touchmove', (e) => {
-            if (!isDragging) return;
-            panX = e.touches[0].clientX - startX;
-            panY = e.touches[0].clientY - startY;
-            updateView();
-        });
-
-        window.addEventListener('touchend', () => isDragging = false);
-
-        peekBtn.ontouchstart = (e) => { e.preventDefault(); isPeeking = true; updateView(); };
-        peekBtn.ontouchend = () => { isPeeking = false; updateView(); };
-
-        document.querySelectorAll('input, select').forEach(el => el.oninput = updateView);
-
-        // --- App State ---
-        function lockApp() {
-            if (!img.src) return;
-            ui.classList.add('hidden');
-            shield.style.display = 'block';
-            unlockBtn.style.display = 'flex';
-            requestWakeLock();
-            if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen();
-        }
-
-        async function unlockApp() {
-            ui.classList.remove('hidden');
-            shield.style.display = 'none';
-            unlockBtn.style.display = 'none';
-            if (wakeLock !== null) {
-                await wakeLock.release();
-                wakeLock = null;
-            }
-            if (document.exitFullscreen) document.exitFullscreen();
-        }
-
-        // --- Initial Load ---
-        window.onload = () => {
-            if (localStorage.getItem('drawingstarr_onboarded')) {
-                tutOverlay.style.display = 'none';
-            } else {
-                startTutorial();
-            }
-        };
-    </script>
-</body>
-</html>
+            { title: "Welcome to Drawing Starr", text: "Turn your device into a lightbox. Place paper over the screen and start tracing." },
+            { title: "1. Select Artwork", text: "Upload any photo. Use Zoom
