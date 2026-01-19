@@ -13,6 +13,7 @@
     <style>
         body { margin: 0; background: #000; overflow: hidden; font-family: sans-serif; height: 100vh; width: 100vw; touch-action: none; }
         
+        /* Main UI Panel */
         #ui-panel { 
             position: absolute; top: 10px; left: 10px; z-index: 100; 
             background: rgba(20, 20, 20, 0.95); padding: 15px; border-radius: 12px; 
@@ -28,13 +29,14 @@
             cursor: pointer; box-sizing: border-box;
         }
 
-        /* GRID SELECTOR STYLES */
+        /* COMPACT GRID SELECTOR */
         .grid-container {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 5px;
-            margin-top: 10px;
-            aspect-ratio: 1 / 1; /* Keep it square */
+            gap: 4px;
+            margin: 15px auto;
+            width: 110px; /* This makes it significantly smaller (about 25% of the panel width) */
+            aspect-ratio: 1 / 1;
         }
         .grid-btn {
             background: #333;
@@ -42,7 +44,7 @@
             border-radius: 4px;
             cursor: pointer;
             transition: all 0.2s;
-            position: relative;
+            display: flex; align-items: center; justify-content: center;
         }
         .grid-btn:active { background: #555; }
         .grid-btn.active {
@@ -50,14 +52,12 @@
             border-color: #007AFF;
             box-shadow: 0 0 8px rgba(0,122,255,0.5);
         }
-        /* Center dot for the middle button */
         .grid-btn-center::after {
             content: 'RESET';
-            font-size: 8px; color: white;
-            position: absolute; top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
+            font-size: 7px; color: white; font-weight: bold;
         }
 
+        /* Tutorial & Overlays */
         #tutorial-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
             background: rgba(0,0,0,0.9); z-index: 1000; 
@@ -66,20 +66,18 @@
         }
         .hidden { display: none !important; }
 
-        /* STAGE FIX: Flexbox centers the image wrapper */
+        /* Stage Handling */
         #stage { 
             position: relative; width: 100vw; height: 100vh; overflow: hidden; z-index: 1; 
             display: flex; justify-content: center; align-items: center;
         }
         
-        /* IMAGE FIX: Auto width/height ensures the box matches the image aspect ratio */
         #display-image { 
             max-width: 100vw; max-height: 100vh; 
             width: auto; height: auto;
             display: none; 
-            transform-origin: center center; /* Default origin */
             will-change: transform; 
-            /* No object-fit needed because we aren't forcing width/height */
+            transform-origin: center center;
         }
         
         #lock-shield { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 150; display: none; }
@@ -90,8 +88,9 @@
             color: white; font-size: 10px; display: none; align-items: center; justify-content: center; text-align: center; backdrop-filter: blur(8px);
         }
 
+        /* UI Controls */
         label { display: block; margin-top: 10px; font-size: 10px; color: #007AFF; font-weight: bold; text-transform: uppercase; }
-        input[type="range"] { width: 100%; margin-top: 5px; }
+        input[type="range"] { width: 100%; margin-top: 5px; cursor: pointer; }
         .btn-row { display: flex; gap: 5px; margin-top: 10px; flex-wrap: wrap; }
         button { flex: 1; min-width: 45%; padding: 10px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 10px; }
         .blue-btn { background: #007AFF; color: white; width: 100%; margin-top: 10px; padding: 14px; font-size: 13px; }
@@ -116,22 +115,20 @@
         <input type="file" id="upload" accept="image/*">
         
         <label>2. Focus Grid (Tap to Zoom)</label>
-        <div class="grid-container">
-            <button class="grid-btn" onclick="setGrid('tl')"></button>
-            <button class="grid-btn" onclick="setGrid('tm')"></button>
-            <button class="grid-btn" onclick="setGrid('tr')"></button>
-            
-            <button class="grid-btn" onclick="setGrid('ml')"></button>
-            <button class="grid-btn grid-btn-center" onclick="setGrid('c')"></button>
-            <button class="grid-btn" onclick="setGrid('mr')"></button>
-            
-            <button class="grid-btn" onclick="setGrid('bl')"></button>
-            <button class="grid-btn" onclick="setGrid('bm')"></button>
-            <button class="grid-btn" onclick="setGrid('br')"></button>
+        <div class="grid-container" id="grid-box">
+            <button class="grid-btn" onclick="setGrid('tl', 0)"></button>
+            <button class="grid-btn" onclick="setGrid('tm', 1)"></button>
+            <button class="grid-btn" onclick="setGrid('tr', 2)"></button>
+            <button class="grid-btn" onclick="setGrid('ml', 3)"></button>
+            <button class="grid-btn grid-btn-center active" onclick="setGrid('c', 4)"></button>
+            <button class="grid-btn" onclick="setGrid('mr', 5)"></button>
+            <button class="grid-btn" onclick="setGrid('bl', 6)"></button>
+            <button class="grid-btn" onclick="setGrid('bm', 7)"></button>
+            <button class="grid-btn" onclick="setGrid('br', 8)"></button>
         </div>
         
         <label>Manual Zoom (<span id="zoomVal">1.0</span>x)</label>
-        <input type="range" id="zoomRange" min="1.0" max="5.0" step="0.1" value="1.0">
+        <input type="range" id="zoomRange" min="1.0" max="6.0" step="0.1" value="1.0">
 
         <label>3. Controls</label>
         <div class="btn-row">
@@ -145,7 +142,9 @@
         </div>
 
         <label>4. Filters</label>
+        <label style="color: #888; font-size: 8px;">LINE WEIGHT</label>
         <input type="range" id="lineWeight" min="20" max="200" value="100">
+        <label style="color: #888; font-size: 8px;">CONTRAST</label>
         <input type="range" id="contrast" min="100" max="1000" value="300">
         
         <button class="yellow-btn" id="peek-btn">HOLD TO PEEK COLOR</button>
@@ -176,20 +175,17 @@
         const zoomRange = document.getElementById('zoomRange');
         
         let panX = 0, panY = 0, startX = 0, startY = 0, isDragging = false, isPeeking = false;
-        let rotation = 0, flip = 1;
-        
-        // Track the current Grid Mode
-        let gridMode = 'c'; // 'c' is center/full
+        let rotation = 0, flip = 1, gridMode = 'c';
 
-        // --- Tutorial Logic ---
+        // --- Tutorial ---
         let currentStep = 0;
         const steps = [
             { title: "Welcome to Drawing Starr", text: "Turn your device into a lightbox. Place paper over the screen and start tracing." },
-            { title: "1. Select Artwork", text: "Upload any photo." },
-            { title: "2. Grid Focus", text: "Tap a square in the grid to instantly zoom into that part of your image." },
-            { title: "3. Line Optimization", text: "Adjust Contrast and Line Weight to make edges pop." },
-            { title: "4. Lock & Start", text: "Tap 'LOCK & START' to freeze the screen." },
-            { title: "5. Unlock", text: "Double tap the floating circle to unlock." }
+            { title: "1. Select Artwork", text: "Upload any photo from your gallery." },
+            { title: "2. Grid Focus", text: "Tap the tiny squares in the grid to zoom into that corner instantly." },
+            { title: "3. Filters", text: "Use Line Weight and Contrast to make outlines visible through your paper." },
+            { title: "4. Lock Canvas", text: "Tap 'LOCK & START' to freeze the image while you draw." },
+            { title: "5. Return", text: "Double-tap the floating circle to bring back the menu." }
         ];
 
         function nextStep() {
@@ -204,28 +200,15 @@
         }
 
         // --- Grid Logic ---
-        function setGrid(mode) {
+        function setGrid(mode, btnIdx) {
             gridMode = mode;
-            // Update button styles
-            document.querySelectorAll('.grid-btn').forEach(btn => btn.classList.remove('active'));
-            // Find the button that was clicked (based on onclick attribute match) is tricky, 
-            // simpler to just highlight loosely or skip highlighting since the view changes instantly.
-            // But let's try to highlight:
+            // UI Highlighting
             const buttons = document.querySelectorAll('.grid-btn');
-            const modes = ['tl','tm','tr','ml','c','mr','bl','bm','br'];
-            const idx = modes.indexOf(mode);
-            if(idx >= 0 && buttons[idx]) buttons[idx].classList.add('active');
+            buttons.forEach(b => b.classList.remove('active'));
+            buttons[btnIdx].classList.add('active');
 
-            // Reset manual pan when switching grid
             panX = 0; panY = 0;
-            
-            // Set Zoom based on mode
-            if (mode === 'c') {
-                zoomRange.value = 1.0; // Reset to full view
-            } else {
-                zoomRange.value = 3.0; // Auto-zoom to 3x for grid focus
-            }
-            
+            zoomRange.value = (mode === 'c') ? 1.0 : 3.0; // Auto-zoom to 3x on selection
             updateView();
         }
 
@@ -236,7 +219,7 @@
                 uploadLabel.innerText = "✓ " + (file.name.length > 15 ? file.name.substring(0, 15) + "..." : file.name);
                 img.src = URL.createObjectURL(file);
                 img.style.display = 'block';
-                img.onload = () => { resetAll(); setGrid('c'); };
+                img.onload = () => { resetAll(); };
             }
         };
 
@@ -245,34 +228,30 @@
             const zoom = parseFloat(zoomRange.value);
             document.getElementById('zoomVal').innerText = zoom.toFixed(1);
 
-            // Determine Transform Origin based on Grid Mode
-            let originX = "50%";
-            let originY = "50%";
-
-            // Map grid codes to percentage coordinates
+            // Calculate Transform Origin based on the selected grid piece
+            let originX = "50%", originY = "50%";
             if (gridMode.includes('t')) originY = "0%";
             if (gridMode.includes('b')) originY = "100%";
             if (gridMode.includes('l')) originX = "0%";
             if (gridMode.includes('r')) originX = "100%";
             
-            // Apply the Transform Origin
-            // This is the magic fix: By changing the origin, the zoom 'grows' from that corner
             img.style.transformOrigin = `${originX} ${originY}`;
-
+            
             // Apply Transform
-            // Note: panX/panY divide by zoom to keep dragging natural
             img.style.transform = `scale(${zoom}) translate(${panX / zoom}px, ${panY / zoom}px) rotate(${rotation}deg) scaleX(${flip})`;
 
             // Filters
+            const con = document.getElementById('contrast').value;
+            const weight = document.getElementById('lineWeight').value;
             const inv = invertToggle.checked ? 'invert(100%)' : 'invert(0%)';
-            img.style.filter = isPeeking ? "none" : `grayscale(100%) contrast(${document.getElementById('contrast').value}%) brightness(${document.getElementById('lineWeight').value}%) ${inv}`;
+            img.style.filter = isPeeking ? "none" : `grayscale(100%) contrast(${con}%) brightness(${weight}%) ${inv}`;
         }
 
         function rotateImg() { rotation = (rotation + 90) % 360; updateView(); }
         function flipImg() { flip *= -1; updateView(); }
-        function resetAll() { panX = 0; panY = 0; rotation = 0; flip = 1; setGrid('c'); }
+        function resetAll() { panX = 0; panY = 0; rotation = 0; flip = 1; setGrid('c', 4); }
 
-        // --- Touch Interactions ---
+        // --- Touch ---
         img.addEventListener('touchstart', (e) => {
             if (shield.style.display === 'block') return;
             isDragging = true;
@@ -294,17 +273,20 @@
 
         document.querySelectorAll('input, select').forEach(el => el.oninput = updateView);
 
+        // --- Lock / Unlock ---
         function lockApp() {
             if (!img.src) return;
             ui.classList.add('hidden');
             shield.style.display = 'block';
             unlockBtn.style.display = 'flex';
+            if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen();
         }
 
         function unlockApp() {
             ui.classList.remove('hidden');
             shield.style.display = 'none';
             unlockBtn.style.display = 'none';
+            if (document.exitFullscreen) document.exitFullscreen();
         }
 
         window.onload = () => {
