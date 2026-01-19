@@ -1,11 +1,18 @@
 {
   "name": "Drawing Starr",
-  "short_name": "DrawSta",
+  "short_name": "DrwStarr",
+  "description": "Unleash your creativity with Drawing Starr, the ultimate digital lightbox. Turn your device into a powerful tracing tool with precision locking, image filters, and smart zoom features to perfect your sketches and illustrations.",
   "start_url": "index.html",
   "display": "standalone",
   "background_color": "#000000",
   "theme_color": "#000000",
   "icons": [
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
     {
       "src": "icon-512.png",
       "sizes": "512x512",
