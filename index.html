@@ -11,25 +11,15 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
 
     <style>
-        body { margin: 0; background: #111; overflow: hidden; font-family: sans-serif; height: 100vh; width: 100vw; touch-action: none; }
+        body { margin: 0; background: #000; overflow: hidden; font-family: sans-serif; height: 100vh; width: 100vw; touch-action: none; }
         
-        /* NEW: Compact & Transparent UI Panel */
         #ui-panel { 
             position: absolute; top: 10px; left: 10px; z-index: 100; 
-            background: rgba(20, 20, 20, 0.7); /* Reduced opacity for transparency */
-            backdrop-filter: blur(8px); /* Subtle blur behind the menu */
-            padding: 10px; /* More compact padding */
-            border-radius: 12px; 
-            color: white; width: 220px; /* Slimmer width */
-            border: 1px solid rgba(255, 255, 255, 0.1); 
-            pointer-events: auto;
-            max-height: 85vh; overflow-y: auto;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-            transition: opacity 0.3s ease;
+            background: rgba(20, 20, 20, 0.7); backdrop-filter: blur(8px);
+            padding: 10px; border-radius: 12px; color: white; width: 220px;
+            border: 1px solid rgba(255, 255, 255, 0.1); pointer-events: auto;
+            max-height: 85vh; overflow-y: auto; box-shadow: 0 4px 15px rgba(0,0,0,0.5);
         }
-
-        /* Ghost effect: fades slightly when not in use */
-        #ui-panel:not(:hover) { opacity: 0.8; }
 
         #upload { display: none; }
         .custom-file-upload {
@@ -39,29 +29,24 @@
             cursor: pointer; box-sizing: border-box;
         }
 
-        /* NEW: Smaller Grid Interface */
         .grid-container {
             display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px;
-            margin: 10px auto; width: 90px; /* Reduced from 110px */
-            aspect-ratio: 1 / 1;
+            margin: 10px auto; width: 90px; aspect-ratio: 1 / 1;
         }
         .grid-btn {
             background: rgba(51, 51, 51, 0.5); border: 1px solid #555; border-radius: 4px; 
-            cursor: pointer; transition: all 0.2s; height: 28px;
+            cursor: pointer; height: 28px;
         }
-        .grid-btn:active { background: #555; }
-        .grid-btn.active { background: #007AFF; border-color: #007AFF; box-shadow: 0 0 8px rgba(0,122,255,0.5); }
+        .grid-btn.active { background: #007AFF; border-color: #007AFF; }
 
         #stage { 
             position: relative; width: 100vw; height: 100vh; overflow: hidden; z-index: 1; 
-            display: flex; justify-content: center; align-items: center;
-            background: #000;
+            display: flex; justify-content: center; align-items: center; background: #000;
         }
 
         #placeholder-bg {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            object-fit: cover; z-index: 0; opacity: 0.4; filter: blur(8px) grayscale(40%);
-            pointer-events: none;
+            object-fit: cover; z-index: 0; opacity: 0.4; filter: blur(8px);
         }
         
         #display-image { 
@@ -70,18 +55,18 @@
         }
         
         label { display: block; margin-top: 8px; font-size: 9px; color: #007AFF; font-weight: bold; text-transform: uppercase; }
-        input[type="range"] { width: 100%; margin-top: 3px; cursor: pointer; height: 12px; }
-        .btn-row { display: flex; gap: 5px; margin-top: 8px; flex-wrap: wrap; }
-        button { flex: 1; min-width: 45%; padding: 8px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 9px; }
+        input[type="range"] { width: 100%; margin-top: 3px; height: 12px; }
+        .btn-row { display: flex; gap: 5px; margin-top: 8px; }
+        button { flex: 1; padding: 8px; border: none; border-radius: 6px; font-weight: bold; font-size: 9px; }
         .blue-btn { background: #007AFF; color: white; width: 100%; margin-top: 8px; padding: 12px; font-size: 11px; }
         .gray-btn { background: rgba(68, 68, 68, 0.7); color: white; }
         .yellow-btn { background: #ffcc00; color: #000; width: 100%; margin-top: 8px; }
         .check-row { display: flex; align-items: center; margin-top: 8px; font-size: 10px; gap: 8px; }
 
-        /* Lock / Unlock UI */
-        #lock-shield { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 150; display: none; }
+        /* Lock Layer */
+        #lock-shield { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 150; display: none; background: transparent; }
         #unlock-btn {
-            position: fixed; top: 15px; right: 15px; z-index: 200;
+            position: fixed; top: 20px; right: 20px; z-index: 200;
             width: 60px; height: 60px; background: rgba(255, 255, 255, 0.1);
             border: 2px solid rgba(255,255,255,0.4); border-radius: 50%;
             color: white; font-size: 9px; display: none; align-items: center; justify-content: center; text-align: center; backdrop-filter: blur(8px);
@@ -113,8 +98,8 @@
 
         <label>3. Controls</label>
         <div class="btn-row">
-            <button class="gray-btn" onclick="rotateImg()">ROTATE 90°</button>
-            <button class="gray-btn" onclick="flipImg()">FLIP HORIZ</button>
+            <button class="gray-btn" onclick="rotateImg()">ROTATE</button>
+            <button class="gray-btn" onclick="flipImg()">FLIP</button>
         </div>
         
         <div class="check-row">
@@ -126,10 +111,10 @@
         <input type="range" id="lineWeight" min="20" max="200" value="100">
         <input type="range" id="contrast" min="100" max="1000" value="300">
         
-        <button class="yellow-btn" id="peek-btn">HOLD TO PEEK COLOR</button>
+        <button class="yellow-btn" id="peek-btn">HOLD TO PEEK</button>
 
         <div class="btn-row">
-            <button class="gray-btn" onclick="resetAll()" style="background: #D32F2F;">RESET VIEW</button>
+            <button class="gray-btn" onclick="resetAll()" style="background: #D32F2F;">RESET</button>
             <button class="blue-btn" onclick="lockApp()">LOCK & START</button>
         </div>
     </div>
@@ -160,15 +145,14 @@
         function setGrid(mode, btnIdx) {
             gridMode = mode;
             document.querySelectorAll('.grid-btn').forEach((b, i) => b.classList.toggle('active', i === btnIdx));
-            panX = 0; panY = 0;
-            zoomRange.value = 3.0; 
+            panX = 0; panY = 0; zoomRange.value = 3.0; 
             updateView();
         }
 
         upload.onchange = (e) => {
             const file = e.target.files[0];
             if (file) {
-                uploadLabel.innerText = "✓ " + (file.name.length > 15 ? file.name.substring(0, 15) + "..." : file.name);
+                uploadLabel.innerText = "✓ Loaded";
                 img.src = URL.createObjectURL(file);
                 img.style.display = 'block';
                 placeholderBg.style.display = 'none';
@@ -180,16 +164,11 @@
             if (!img.src) return;
             const zoom = parseFloat(zoomRange.value);
             document.getElementById('zoomVal').innerText = zoom.toFixed(1);
-
-            let originX = "50%", originY = "50%";
-            if (gridMode.includes('t')) originY = "0%";
-            if (gridMode.includes('b')) originY = "100%";
-            if (gridMode.includes('l')) originX = "0%";
-            if (gridMode.includes('r')) originX = "100%";
-            
-            img.style.transformOrigin = `${originX} ${originY}`;
+            let oX = "50%", oY = "50%";
+            if (gridMode.includes('t')) oY = "0%"; if (gridMode.includes('b')) oY = "100%";
+            if (gridMode.includes('l')) oX = "0%"; if (gridMode.includes('r')) oX = "100%";
+            img.style.transformOrigin = `${oX} ${oY}`;
             img.style.transform = `scale(${zoom}) translate(${panX / zoom}px, ${panY / zoom}px) rotate(${rotation}deg) scaleX(${flip})`;
-
             const con = document.getElementById('contrast').value;
             const weight = document.getElementById('lineWeight').value;
             const inv = invertToggle.checked ? 'invert(100%)' : 'invert(0%)';
@@ -198,47 +177,57 @@
 
         function rotateImg() { rotation = (rotation + 90) % 360; updateView(); }
         function flipImg() { flip *= -1; updateView(); }
-        
-        function resetAll() { 
-            panX = 0; panY = 0; rotation = 0; flip = 1; 
-            gridMode = 'none'; 
-            zoomRange.value = 1.0; 
-            document.querySelectorAll('.grid-btn').forEach(b => b.classList.remove('active'));
-            updateView(); 
-        }
+        function resetAll() { panX = 0; panY = 0; rotation = 0; flip = 1; gridMode = 'none'; zoomRange.value = 1.0; updateView(); }
 
-        // Dragging & Filter events
         img.addEventListener('touchstart', (e) => {
             if (shield.style.display === 'block') return;
             isDragging = true;
             startX = e.touches[0].clientX - panX;
             startY = e.touches[0].clientY - panY;
         });
-
         window.addEventListener('touchmove', (e) => {
             if (!isDragging) return;
-            panX = e.touches[0].clientX - startX;
-            panY = e.touches[0].clientY - startY;
-            updateView();
+            panX = e.touches[0].clientX - startX; panY = e.touches[0].clientY - startY; updateView();
         });
-
         window.addEventListener('touchend', () => isDragging = false);
+
         peekBtn.ontouchstart = (e) => { e.preventDefault(); isPeeking = true; updateView(); };
         peekBtn.ontouchend = () => { isPeeking = false; updateView(); };
-        document.querySelectorAll('input, select').forEach(el => el.oninput = updateView);
 
+        // --- NEW FULLSCREEN LOGIC ---
         function lockApp() {
             if (!img.src) return;
             ui.style.display = 'none';
             shield.style.display = 'block';
             unlockBtn.style.display = 'flex';
+
+            // Trigger Fullscreen
+            const elem = document.documentElement;
+            if (elem.requestFullscreen) {
+                elem.requestFullscreen();
+            } else if (elem.webkitRequestFullscreen) { /* Safari */
+                elem.webkitRequestFullscreen();
+            } else if (elem.msRequestFullscreen) { /* IE11 */
+                elem.msRequestFullscreen();
+            }
         }
 
         function unlockApp() {
             ui.style.display = 'block';
             shield.style.display = 'none';
             unlockBtn.style.display = 'none';
+
+            // Exit Fullscreen
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            } else if (document.webkitExitFullscreen) {
+                document.webkitExitFullscreen();
+            } else if (document.msExitFullscreen) {
+                document.msExitFullscreen();
+            }
         }
+
+        document.querySelectorAll('input').forEach(el => el.oninput = updateView);
     </script>
 </body>
 </html>
