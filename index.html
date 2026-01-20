@@ -71,9 +71,26 @@
             border: 2px solid rgba(255,255,255,0.4); border-radius: 50%;
             color: white; font-size: 9px; display: none; align-items: center; justify-content: center; text-align: center; backdrop-filter: blur(8px);
         }
+
+        /* RESTORED TUTORIAL CSS */
+        #tutorial-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.9); z-index: 1000; 
+            display: flex; align-items: center; justify-content: center; 
+            color: white; text-align: center; padding: 20px; box-sizing: border-box;
+        }
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
+
+    <div id="tutorial-overlay">
+        <div id="tutorial-content" style="max-width: 300px;">
+            <h2 id="tut-title" style="color: #007AFF;">Drawing Starr</h2>
+            <p id="tut-text" style="font-size: 14px; line-height: 1.5;">Your professional lightbox for perfect tracing.</p>
+            <button onclick="nextStep()" id="tut-btn" class="blue-btn">NEXT</button>
+        </div>
+    </div>
 
     <div id="ui-panel">
         <label>1. Image Source</label>
@@ -138,9 +155,39 @@
         const peekBtn = document.getElementById('peek-btn');
         const invertToggle = document.getElementById('invertToggle');
         const zoomRange = document.getElementById('zoomRange');
+        const tutOverlay = document.getElementById('tutorial-overlay');
         
         let panX = 0, panY = 0, startX = 0, startY = 0, isDragging = false, isPeeking = false;
         let rotation = 0, flip = 1, gridMode = 'none';
+
+        // --- RESTORED TUTORIAL LOGIC ---
+        let currentStep = 0;
+        const steps = [
+            { title: "Welcome to Drawing Starr", text: "Turn your device into a lightbox. Place paper over the screen and start tracing." },
+            { title: "1. Select Artwork", text: "Upload any photo from your gallery to get started." },
+            { title: "2. Grid Focus", text: "Tap a square in the grid to zoom into that specific corner instantly." },
+            { title: "3. Filters", text: "Adjust contrast and line weight to see outlines through thick paper." },
+            { title: "4. Lock Canvas", text: "Tap 'LOCK & START' to enter fullscreen and freeze the image." },
+            { title: "5. Double Tap to Return", text: "To unlock the menu, double-tap the floating circle in the corner." }
+        ];
+
+        function nextStep() {
+            currentStep++;
+            if (currentStep < steps.length) {
+                document.getElementById('tut-title').innerText = steps[currentStep].title;
+                document.getElementById('tut-text').innerText = steps[currentStep].text;
+            } else {
+                tutOverlay.style.display = 'none';
+                localStorage.setItem('drawingstarr_onboarded', 'true');
+            }
+        }
+
+        // On Load Check
+        window.onload = () => {
+            if (localStorage.getItem('drawingstarr_onboarded')) {
+                tutOverlay.style.display = 'none';
+            }
+        };
 
         function setGrid(mode, btnIdx) {
             gridMode = mode;
@@ -194,37 +241,22 @@
         peekBtn.ontouchstart = (e) => { e.preventDefault(); isPeeking = true; updateView(); };
         peekBtn.ontouchend = () => { isPeeking = false; updateView(); };
 
-        // --- NEW FULLSCREEN LOGIC ---
         function lockApp() {
             if (!img.src) return;
             ui.style.display = 'none';
             shield.style.display = 'block';
             unlockBtn.style.display = 'flex';
-
-            // Trigger Fullscreen
             const elem = document.documentElement;
-            if (elem.requestFullscreen) {
-                elem.requestFullscreen();
-            } else if (elem.webkitRequestFullscreen) { /* Safari */
-                elem.webkitRequestFullscreen();
-            } else if (elem.msRequestFullscreen) { /* IE11 */
-                elem.msRequestFullscreen();
-            }
+            if (elem.requestFullscreen) { elem.requestFullscreen(); } 
+            else if (elem.webkitRequestFullscreen) { elem.webkitRequestFullscreen(); }
         }
 
         function unlockApp() {
             ui.style.display = 'block';
             shield.style.display = 'none';
             unlockBtn.style.display = 'none';
-
-            // Exit Fullscreen
-            if (document.exitFullscreen) {
-                document.exitFullscreen();
-            } else if (document.webkitExitFullscreen) {
-                document.webkitExitFullscreen();
-            } else if (document.msExitFullscreen) {
-                document.msExitFullscreen();
-            }
+            if (document.exitFullscreen) { document.exitFullscreen(); } 
+            else if (document.webkitExitFullscreen) { document.webkitExitFullscreen(); }
         }
 
         document.querySelectorAll('input').forEach(el => el.oninput = updateView);
