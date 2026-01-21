@@ -24,7 +24,6 @@
             width: 170px; border: 1px solid rgba(255, 255, 255, 0.1); 
             pointer-events: auto; max-height: 90vh; overflow-y: auto; 
             box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-            transition: transform 0.3s ease, opacity 0.3s ease;
         }
 
         @media (orientation: landscape) {
@@ -99,7 +98,7 @@
     <div id="tutorial-overlay">
         <div id="tutorial-content" style="max-width: 250px;">
             <h2 id="tut-title" style="color: #007AFF; font-size: 18px;">Drawing Starr AI</h2>
-            <p id="tut-text" style="font-size: 12px; line-height: 1.4;">Smart line detection for complex photos.</p>
+            <p id="tut-text" style="font-size: 12px; line-height: 1.4;">Smart line detection & stay-awake mode.</p>
             <button onclick="nextStep()" class="blue-btn">NEXT</button>
         </div>
     </div>
@@ -181,6 +180,23 @@
         
         let panX = 0, panY = 0, startX = 0, startY = 0, isDragging = false, isPeeking = false;
         let rotation = 0, flip = 1, gridMode = 'none';
+        let wakeLock = null;
+
+        // Prevent Screen Sleep
+        async function requestWakeLock() {
+            try {
+                if ('wakeLock' in navigator) {
+                    wakeLock = await navigator.wakeLock.request('screen');
+                    console.log('Wake Lock active');
+                }
+            } catch (err) { console.error(`${err.name}, ${err.message}`); }
+        }
+
+        function releaseWakeLock() {
+            if (wakeLock !== null) {
+                wakeLock.release().then(() => { wakeLock = null; });
+            }
+        }
 
         function aiAutoTune() {
             if (!img.src) return;
@@ -189,9 +205,7 @@
             ctx.drawImage(img, 0, 0, 50, 50);
             const data = ctx.getImageData(0, 0, 50, 50).data;
             let brightnessSum = 0;
-            for(let i=0; i<data.length; i+=4) {
-                brightnessSum += (data[i] + data[i+1] + data[i+2]) / 3;
-            }
+            for(let i=0; i<data.length; i+=4) { brightnessSum += (data[i] + data[i+1] + data[i+2]) / 3; }
             const avgBrightness = brightnessSum / (50*50);
 
             if (avgBrightness > 180) {
@@ -214,8 +228,8 @@
 
         let currentStep = 0;
         const steps = [
-            { title: "Drawing Starr AI", text: "New: AI Auto-Tune analyzes your photo for the best tracing lines." },
-            { title: "View Modes", text: "Combine Invert, Color, and Sharpness filters to see every detail." }
+            { title: "Smart Tracing", text: "AI analyzes your photo for the best lines automatically." },
+            { title: "Always Awake", text: "Screen will not dim or sleep while 'Locked & Start' is active." }
         ];
 
         function nextStep() {
@@ -265,11 +279,8 @@
             const con = document.getElementById('contrast').value;
             const bri = document.getElementById('brightness').value;
             const sharp = document.getElementById('sharpness').value;
-            
-            // Combining logic for grayscale and inversion
             const grayStr = (colorToggle.checked || isPeeking) ? "grayscale(0%)" : "grayscale(100%)";
             const invertStr = invertToggle.checked ? "invert(100%)" : "invert(0%)";
-            
             img.style.filter = `${grayStr} ${invertStr} brightness(${bri}%) contrast(${con}%) blur(${sharp}px)`;
         }
 
@@ -281,12 +292,12 @@
             if (shield.style.display === 'block') return;
             isDragging = true;
             startX = e.touches[0].clientX - panX;
-            startY = e.touches[0].clientY - startY; // Fix for vertical pan drift
+            startY = e.touches[0].clientY - panY;
         });
         window.addEventListener('touchmove', (e) => {
             if (!isDragging) return;
             panX = e.touches[0].clientX - startX; 
-            panY = e.touches[0].clientY - (e.touches[0].clientY - panY); // Corrected pan logic
+            panY = e.touches[0].clientY - startY;
             updateView();
         });
         window.addEventListener('touchend', () => isDragging = false);
@@ -300,6 +311,7 @@
             showBtn.style.display = 'none';
             shield.style.display = 'block';
             unlockBtn.style.display = 'flex';
+            requestWakeLock(); // Keeps screen on
             const elem = document.documentElement;
             if (elem.requestFullscreen) elem.requestFullscreen();
         }
@@ -308,6 +320,7 @@
             ui.style.display = 'block';
             shield.style.display = 'none';
             unlockBtn.style.display = 'none';
+            releaseWakeLock(); // Allows screen to sleep again
             if (document.exitFullscreen) document.exitFullscreen();
         }
 
