@@ -69,7 +69,7 @@
         label { display: block; margin-top: 6px; font-size: 8px; color: #007AFF; font-weight: bold; text-transform: uppercase; }
         input[type="range"] { width: 100%; margin-top: 2px; height: 10px; }
         .btn-row { display: flex; gap: 4px; margin-top: 6px; }
-        .check-row { display: flex; align-items: center; gap: 5px; margin-top: 6px; font-size: 9px; }
+        .check-row { display: flex; align-items: center; gap: 5px; margin-top: 4px; font-size: 9px; }
         
         button { flex: 1; padding: 6px; border: none; border-radius: 5px; font-weight: bold; font-size: 8px; cursor: pointer; }
         .blue-btn { background: #007AFF; color: white; width: 100%; margin-top: 6px; padding: 10px; font-size: 10px; }
@@ -132,6 +132,10 @@
             <input type="checkbox" id="colorToggle" onchange="updateView()">
             <span>STAY IN COLOR</span>
         </div>
+        <div class="check-row">
+            <input type="checkbox" id="invertToggle" onchange="updateView()">
+            <span>INVERT COLORS</span>
+        </div>
         <div class="btn-row">
             <button class="gray-btn" onclick="rotateImg()">ROTATE</button>
             <button class="gray-btn" onclick="flipImg()">FLIP</button>
@@ -171,6 +175,7 @@
         const peekBtn = document.getElementById('peek-btn');
         const zoomRange = document.getElementById('zoomRange');
         const colorToggle = document.getElementById('colorToggle');
+        const invertToggle = document.getElementById('invertToggle');
         const tutOverlay = document.getElementById('tutorial-overlay');
         const aiCanvas = document.getElementById('ai-canvas');
         
@@ -209,8 +214,8 @@
 
         let currentStep = 0;
         const steps = [
-            { title: "AI Auto-Tune", text: "New: Let the app analyze your photo to find the best tracing lines automatically." },
-            { title: "Pro Line Filters", text: "Manual controls for sharpness and exposure work in both color and grayscale modes." }
+            { title: "Drawing Starr AI", text: "New: AI Auto-Tune analyzes your photo for the best tracing lines." },
+            { title: "View Modes", text: "Combine Invert, Color, and Sharpness filters to see every detail." }
         ];
 
         function nextStep() {
@@ -257,28 +262,32 @@
             img.style.transformOrigin = `${oX} ${oY}`;
             img.style.transform = `scale(${zoom}) translate(${panX / zoom}px, ${panY / zoom}px) rotate(${rotation}deg) scaleX(${flip})`;
             
-            // FILTER FIX: Apply filters in both modes, only toggle grayscale
             const con = document.getElementById('contrast').value;
             const bri = document.getElementById('brightness').value;
             const sharp = document.getElementById('sharpness').value;
             
+            // Combining logic for grayscale and inversion
             const grayStr = (colorToggle.checked || isPeeking) ? "grayscale(0%)" : "grayscale(100%)";
-            img.style.filter = `${grayStr} brightness(${bri}%) contrast(${con}%) blur(${sharp}px)`;
+            const invertStr = invertToggle.checked ? "invert(100%)" : "invert(0%)";
+            
+            img.style.filter = `${grayStr} ${invertStr} brightness(${bri}%) contrast(${con}%) blur(${sharp}px)`;
         }
 
         function rotateImg() { rotation = (rotation + 90) % 360; updateView(); }
         function flipImg() { flip *= -1; updateView(); }
-        function resetAll() { panX = 0; panY = 0; rotation = 0; flip = 1; gridMode = 'none'; zoomRange.value = 1.0; updateView(); }
+        function resetAll() { panX = 0; panY = 0; rotation = 0; flip = 1; gridMode = 'none'; zoomRange.value = 1.0; invertToggle.checked = false; colorToggle.checked = false; updateView(); }
 
         img.addEventListener('touchstart', (e) => {
             if (shield.style.display === 'block') return;
             isDragging = true;
             startX = e.touches[0].clientX - panX;
-            startY = e.touches[0].clientY - panY;
+            startY = e.touches[0].clientY - startY; // Fix for vertical pan drift
         });
         window.addEventListener('touchmove', (e) => {
             if (!isDragging) return;
-            panX = e.touches[0].clientX - startX; panY = e.touches[0].clientY - startY; updateView();
+            panX = e.touches[0].clientX - startX; 
+            panY = e.touches[0].clientY - (e.touches[0].clientY - panY); // Corrected pan logic
+            updateView();
         });
         window.addEventListener('touchend', () => isDragging = false);
 
