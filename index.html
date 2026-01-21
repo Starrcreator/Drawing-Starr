@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Drawing Starr</title>
+    <title>Drawing Starr AI</title>
     
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#000000">
@@ -180,7 +180,7 @@
         function aiAutoTune() {
             if (!img.src) return;
             const ctx = aiCanvas.getContext('2d');
-            aiCanvas.width = 50; aiCanvas.height = 50; // Small sample for speed
+            aiCanvas.width = 50; aiCanvas.height = 50;
             ctx.drawImage(img, 0, 0, 50, 50);
             const data = ctx.getImageData(0, 0, 50, 50).data;
             let brightnessSum = 0;
@@ -189,16 +189,15 @@
             }
             const avgBrightness = brightnessSum / (50*50);
 
-            // AI Logic: Detect best filter based on exposure
-            if (avgBrightness > 180) { // Very bright photo
+            if (avgBrightness > 180) {
                 document.getElementById('contrast').value = 600;
                 document.getElementById('brightness').value = 70;
                 document.getElementById('sharpness').value = 1;
-            } else if (avgBrightness < 80) { // Very dark photo
+            } else if (avgBrightness < 80) {
                 document.getElementById('contrast').value = 700;
                 document.getElementById('brightness').value = 180;
                 document.getElementById('sharpness').value = 0.5;
-            } else { // Balanced organic photo
+            } else {
                 document.getElementById('contrast').value = 450;
                 document.getElementById('brightness').value = 110;
                 document.getElementById('sharpness').value = 0.5;
@@ -208,11 +207,10 @@
             setTimeout(() => { document.getElementById('ai-auto-btn').innerText = "⚡ AI AUTO-TUNE"; }, 2000);
         }
 
-        // Rest of standard logic...
         let currentStep = 0;
         const steps = [
             { title: "AI Auto-Tune", text: "New: Let the app analyze your photo to find the best tracing lines automatically." },
-            { title: "Pro Line Filters", text: "Manual controls for sharpness and exposure remain available for fine-tuning." }
+            { title: "Pro Line Filters", text: "Manual controls for sharpness and exposure work in both color and grayscale modes." }
         ];
 
         function nextStep() {
@@ -259,14 +257,13 @@
             img.style.transformOrigin = `${oX} ${oY}`;
             img.style.transform = `scale(${zoom}) translate(${panX / zoom}px, ${panY / zoom}px) rotate(${rotation}deg) scaleX(${flip})`;
             
-            if (colorToggle.checked || isPeeking) {
-                img.style.filter = "none";
-            } else {
-                const con = document.getElementById('contrast').value;
-                const bri = document.getElementById('brightness').value;
-                const sharp = document.getElementById('sharpness').value;
-                img.style.filter = `grayscale(100%) brightness(${bri}%) contrast(${con}%) blur(${sharp}px)`;
-            }
+            // FILTER FIX: Apply filters in both modes, only toggle grayscale
+            const con = document.getElementById('contrast').value;
+            const bri = document.getElementById('brightness').value;
+            const sharp = document.getElementById('sharpness').value;
+            
+            const grayStr = (colorToggle.checked || isPeeking) ? "grayscale(0%)" : "grayscale(100%)";
+            img.style.filter = `${grayStr} brightness(${bri}%) contrast(${con}%) blur(${sharp}px)`;
         }
 
         function rotateImg() { rotation = (rotation + 90) % 360; updateView(); }
