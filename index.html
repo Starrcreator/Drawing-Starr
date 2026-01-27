@@ -12,80 +12,80 @@
         
         #ui-panel { 
             position: absolute; top: 10px; left: 10px; z-index: 100; 
-            background: rgba(25, 25, 25, 0.9); backdrop-filter: blur(10px);
-            padding: 10px; border-radius: 12px; color: white; width: 180px;
-            border: 1px solid rgba(255,255,255,0.1); max-height: 90vh; overflow-y: auto;
+            background: rgba(25, 25, 25, 0.95); backdrop-filter: blur(12px);
+            padding: 12px; border-radius: 14px; color: white; width: 200px;
+            border: 1px solid rgba(255,255,255,0.15); max-height: 90vh; overflow-y: auto;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
 
         #show-menu-btn {
             position: absolute; top: 15px; left: 15px; z-index: 101;
-            background: #007AFF; color: white; border: none; padding: 10px;
-            border-radius: 20px; font-size: 10px; font-weight: bold; display: none;
+            background: #007AFF; color: white; border: none; padding: 12px 18px;
+            border-radius: 25px; font-size: 11px; font-weight: bold; display: none;
         }
 
+        /* Fixed Upload Box Styling */
         .custom-file-upload {
-            display: block; width: 100%; padding: 8px; background: #1c1c1e;
-            border: 1.5px dashed #007AFF; border-radius: 6px; color: #007AFF;
-            text-align: center; font-weight: bold; font-size: 9px; margin-bottom: 8px;
+            display: block; width: 100%; padding: 12px 8px; background: rgba(0, 122, 255, 0.1);
+            border: 2px dashed #007AFF; border-radius: 8px; color: #007AFF;
+            text-align: center; font-weight: bold; font-size: 10px; cursor: pointer;
+            box-sizing: border-box; margin-bottom: 10px;
         }
 
         .grid-container {
-            display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px;
-            margin: 5px auto; width: 90px;
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px;
+            margin: 8px auto; width: 100px;
         }
-        .grid-btn { background: #333; border: 1px solid #555; height: 28px; border-radius: 4px; cursor: pointer; }
-        .grid-btn.active { background: #007AFF; border-color: #fff; }
+        .grid-btn { background: #3a3a3c; border: 1px solid #555; height: 32px; border-radius: 6px; cursor: pointer; }
+        .grid-btn.active { background: #007AFF; border-color: #fff; box-shadow: 0 0 8px #007AFF; }
 
         #stage { position: relative; width: 100vw; height: 100vh; overflow: hidden; display: flex; align-items: center; justify-content: center; }
         
-        /* The Virtual Square Container */
         #square-box { 
-            position: relative; width: 1000px; height: 1000px; 
-            display: flex; align-items: center; justify-content: center;
+            position: absolute; display: flex; align-items: center; justify-content: center;
             transform-origin: center center;
         }
-        #display-image { max-width: 100%; max-height: 100%; pointer-events: none; }
+        #display-image { width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
         #draw-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 5; touch-action: none; }
 
-        .tool-row { display: flex; gap: 4px; margin-top: 8px; }
-        .tool-btn { flex: 1; padding: 10px; border-radius: 6px; font-size: 14px; background: #444; border: none; color: white; }
-        .tool-btn.active { background: #007AFF; }
+        .tool-row { display: flex; gap: 6px; margin-top: 10px; }
+        .tool-btn { flex: 1; padding: 12px; border-radius: 8px; font-size: 16px; background: #3a3a3c; border: none; color: white; cursor: pointer; }
+        .tool-btn.active { background: #007AFF; transform: scale(1.05); }
         
-        label { display: block; margin-top: 8px; font-size: 8px; color: #007AFF; font-weight: bold; }
-        .check-row { display: flex; align-items: center; gap: 8px; margin-top: 5px; font-size: 10px; }
-        input[type="range"] { width: 100%; margin-top: 4px; }
+        label { display: block; margin-top: 12px; font-size: 9px; color: #8e8e93; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
+        input[type="range"] { width: 100%; margin-top: 6px; cursor: pointer; }
         
-        .blue-btn { background: #007AFF; color: white; width: 100%; margin-top: 10px; padding: 12px; border-radius: 8px; font-weight: bold; }
-        .red-btn { background: #D32F2F; color: white; padding: 6px; font-size: 9px; border-radius: 4px; margin-top: 5px; width: 100%; }
+        .blue-btn { background: #007AFF; color: white; width: 100%; margin-top: 15px; padding: 14px; border-radius: 10px; font-weight: bold; font-size: 12px; border: none; }
+        .red-btn { background: rgba(255, 69, 58, 0.2); color: #ff453a; padding: 8px; font-size: 10px; border-radius: 6px; margin-top: 8px; width: 100%; border: 1px solid #ff453a; }
         
         #unlock-btn {
-            position: fixed; top: 20px; right: 20px; z-index: 200; width: 60px; height: 60px;
-            background: rgba(255,255,255,0.1); border: 2px solid #fff; border-radius: 50%;
-            color: white; font-size: 8px; display: none; align-items: center; justify-content: center; text-align: center;
+            position: fixed; top: 25px; right: 25px; z-index: 200; width: 65px; height: 65px;
+            background: rgba(0,0,0,0.5); border: 2px solid #fff; border-radius: 50%;
+            color: white; font-size: 9px; display: none; align-items: center; justify-content: center; text-align: center; backdrop-filter: blur(5px);
         }
         #lock-shield { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 150; display: none; }
     </style>
 </head>
 <body>
 
-    <button id="show-menu-btn" onclick="toggleMenu(true)">SHOW MENU</button>
+    <button id="show-menu-btn" onclick="toggleMenu(true)">MENU</button>
 
     <div id="ui-panel">
-        <label>1. LOAD IMAGE</label>
-        <label for="upload" class="custom-file-upload">UPLOAD PHOTO</label>
+        <label>1. SOURCE</label>
+        <label for="upload" class="custom-file-upload" id="upload-label">📁 TAP TO UPLOAD IMAGE</label>
         <input type="file" id="upload" accept="image/*" style="display:none">
         
-        <label>2. QUADRANT FOCUS</label>
+        <label>2. QUADRANT FOCUS (1cm OVERLAP)</label>
         <div class="grid-container">
-            <button class="grid-btn" onclick="goToQuad(300, 300, 0)"></button>
-            <button class="grid-btn" onclick="goToQuad(0, 300, 1)"></button>
-            <button class="grid-btn" onclick="goToQuad(-300, 300, 2)"></button>
-            <button class="grid-btn" onclick="goToQuad(300, 0, 3)"></button>
-            <button class="grid-btn" onclick="goToQuad(0, 0, 4)"></button>
-            <button class="grid-btn" onclick="goToQuad(-300, 0, 5)"></button>
-            <button class="grid-btn" onclick="goToQuad(300, -300, 6)"></button>
-            <button class="grid-btn" onclick="setQuad(0, -300, 7)"></button>
-            <button class="grid-btn" onclick="goToQuad(-300, -300, 8)"></button>
+            <button class="grid-btn" onclick="goToQuad(0,0,0)"></button>
+            <button class="grid-btn" onclick="goToQuad(1,0,1)"></button>
+            <button class="grid-btn" onclick="goToQuad(2,0,2)"></button>
+            <button class="grid-btn" onclick="goToQuad(0,1,3)"></button>
+            <button class="grid-btn" onclick="goToQuad(1,1,4)"></button>
+            <button class="grid-btn" onclick="goToQuad(2,1,5)"></button>
+            <button class="grid-btn" onclick="goToQuad(0,2,6)"></button>
+            <button class="grid-btn" onclick="goToQuad(1,2,7)"></button>
+            <button class="grid-btn" onclick="goToQuad(2,2,8)"></button>
         </div>
 
         <label>3. TOOLS</label>
@@ -95,21 +95,19 @@
             <button id="btn-erase" class="tool-btn" onclick="setTool('erase')">🧼</button>
         </div>
         
-        <label>HIGHLIGHT COLOR</label>
-        <input type="color" id="penColor" value="#ff0000" style="width:100%; height:30px; border:none; background:none;">
+        <label>PEN COLOR</label>
+        <input type="color" id="penColor" value="#ff0000" style="width:100%; height:35px; border:none; background:transparent; cursor:pointer;">
 
         <label>ZOOM LEVEL</label>
-        <input type="range" id="zoomRange" min="0.5" max="4.0" step="0.1" value="1.0" oninput="updateView()">
+        <input type="range" id="zoomRange" min="1.0" max="10.0" step="0.1" value="1.0" oninput="updateView()">
 
-        <div class="check-row">
-            <input type="checkbox" id="colorToggle" onchange="updateView()"> <span>STAY IN COLOR</span>
-        </div>
-        <div class="check-row">
-            <input type="checkbox" id="invToggle" onchange="updateView()"> <span>INVERT COLORS</span>
+        <div style="display:flex; justify-content: space-between; margin-top:12px;">
+            <label style="color:white;"><input type="checkbox" id="colorToggle" onchange="updateView()"> COLOR</label>
+            <label style="color:white;"><input type="checkbox" id="invToggle" onchange="updateView()"> INVERT</label>
         </div>
 
-        <button class="red-btn" onclick="clearDraw()">CLEAR ALL DRAWINGS</button>
-        <button class="blue-btn" onclick="lockApp()">LOCK & START</button>
+        <button class="red-btn" onclick="clearDraw()">CLEAR HIGHLIGHTS</button>
+        <button class="blue-btn" onclick="lockApp()">LOCK & START TRACING</button>
     </div>
 
     <div id="unlock-btn" ondblclick="unlockApp()">DBL TAP<br>UNLOCK</div>
@@ -118,7 +116,7 @@
     <div id="stage">
         <div id="square-box">
             <img id="display-image">
-            <canvas id="draw-canvas" width="1000" height="1000"></canvas>
+            <canvas id="draw-canvas"></canvas>
         </div>
     </div>
 
@@ -133,12 +131,24 @@
         const unlockBtn = document.getElementById('unlock-btn');
         
         let panX = 0, panY = 0, qX = 0, qY = 0, startX = 0, startY = 0;
-        let isDragging = false, currentTool = 'move', wakeLock = null;
+        let isDragging = false, currentTool = 'move', wakeLock = null, side = 0;
 
         document.getElementById('upload').onchange = (e) => {
             const file = e.target.files[0];
+            if(!file) return;
             const reader = new FileReader();
-            reader.onload = (f) => { img.src = f.target.result; updateView(); };
+            reader.onload = (f) => { 
+                img.src = f.target.result; 
+                img.onload = () => {
+                    side = Math.max(img.naturalWidth, img.naturalHeight);
+                    box.style.width = side + 'px';
+                    box.style.height = side + 'px';
+                    canvas.width = side;
+                    canvas.height = side;
+                    document.getElementById('upload-label').innerText = "✅ IMAGE LOADED";
+                    resetView();
+                };
+            };
             reader.readAsDataURL(file);
         };
 
@@ -148,34 +158,36 @@
             document.getElementById('btn-' + t).classList.add('active');
         }
 
-        function goToQuad(x, y, idx) {
-            qX = x; qY = y; panX = 0; panY = 0;
+        function goToQuad(col, row, idx) {
+            // Precise quadrant jumps based on Dynamic Square side
+            // 0.45 creates the 10% overlap (1cm)
+            const moveStep = side * 0.45;
+            qX = (1 - col) * moveStep;
+            qY = (1 - row) * moveStep;
+            
+            panX = 0; panY = 0;
             document.querySelectorAll('.grid-btn').forEach((b, i) => b.classList.toggle('active', i === idx));
-            if (document.getElementById('zoomRange').value < 1.5) document.getElementById('zoomRange').value = 2.0;
+            if (document.getElementById('zoomRange').value < 2) document.getElementById('zoomRange').value = 3.0;
             updateView();
         }
 
         function updateView() {
+            if (!side) return;
             const zoom = document.getElementById('zoomRange').value;
-            // Move the square box based on Quadrant + Manual Pan
             box.style.transform = `scale(${zoom}) translate(${qX + panX}px, ${qY + panY}px)`;
             
             const gray = document.getElementById('colorToggle').checked ? 0 : 100;
             const inv = document.getElementById('invToggle').checked ? 100 : 0;
             img.style.filter = `grayscale(${gray}%) invert(${inv}%) contrast(200%)`;
-            
-            // Re-draw existing lines with new color if color is changed
-            // To make "global color change" work properly, we'd need to store coordinates.
-            // For now, we change the current brush color.
         }
 
         const handleTouch = (e) => {
             if (shield.style.display === 'block') return;
             const touch = e.touches[0];
             const rect = canvas.getBoundingClientRect();
-            const scale = 1000 / rect.width;
-            const x = (touch.clientX - rect.left) * scale;
-            const y = (touch.clientY - rect.top) * scale;
+            const scaleFac = side / rect.width;
+            const x = (touch.clientX - rect.left) * scaleFac;
+            const y = (touch.clientY - rect.top) * scaleFac;
 
             if (currentTool === 'move') {
                 if (e.type === 'touchstart') { isDragging = true; startX = touch.clientX - panX; startY = touch.clientY - panY; }
@@ -186,7 +198,7 @@
                     ctx.globalCompositeOperation = (currentTool === 'erase') ? 'destination-out' : 'source-over';
                     ctx.lineTo(x, y);
                     ctx.strokeStyle = document.getElementById('penColor').value;
-                    ctx.lineWidth = (currentTool === 'erase') ? 20 : 5;
+                    ctx.lineWidth = (currentTool === 'erase') ? 40 : 10;
                     ctx.lineCap = "round";
                     ctx.stroke();
                 }
@@ -197,10 +209,12 @@
         canvas.addEventListener('touchmove', (e) => { e.preventDefault(); handleTouch(e); }, { passive: false });
         window.addEventListener('touchend', () => isDragging = false);
 
-        function clearDraw() { ctx.clearRect(0, 0, 1000, 1000); }
+        function resetView() { qX = 0; qY = 0; panX = 0; panY = 0; document.getElementById('zoomRange').value = 1.0; updateView(); }
+        function clearDraw() { if(confirm("Clear all highlight lines?")) ctx.clearRect(0, 0, side, side); }
         function toggleMenu(v) { ui.style.display = v ? 'block' : 'none'; showBtn.style.display = v ? 'none' : 'block'; }
 
         async function lockApp() {
+            if(!img.src) return alert("Please upload an image first.");
             toggleMenu(false); shield.style.display = 'block'; unlockBtn.style.display = 'flex';
             if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen');
             if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen();
