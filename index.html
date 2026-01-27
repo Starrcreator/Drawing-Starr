@@ -19,9 +19,9 @@
         
         #ui-panel { 
             position: absolute; top: 10px; left: 10px; z-index: 100; 
-            background: rgba(20, 20, 20, 0.85); backdrop-filter: blur(8px);
-            padding: 10px; border-radius: 12px; color: white; 
-            width: 190px; border: 1px solid rgba(255, 255, 255, 0.1); 
+            background: rgba(20, 20, 20, 0.8); backdrop-filter: blur(8px);
+            padding: 8px; border-radius: 10px; color: white; 
+            width: 170px; border: 1px solid rgba(255, 255, 255, 0.1); 
             pointer-events: auto; max-height: 90vh; overflow-y: auto; 
             box-shadow: 0 4px 15px rgba(0,0,0,0.5);
         }
@@ -41,6 +41,16 @@
             cursor: pointer; box-sizing: border-box;
         }
 
+        .grid-container {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px;
+            margin: 8px auto; width: 75px; aspect-ratio: 1 / 1;
+        }
+        .grid-btn {
+            background: rgba(51, 51, 51, 0.5); border: 1px solid #555; border-radius: 3px; 
+            cursor: pointer; height: 22px;
+        }
+        .grid-btn.active { background: #007AFF; border-color: #007AFF; }
+
         #stage { 
             position: relative; width: 100vw; height: 100vh; overflow: hidden; z-index: 1; 
             display: flex; justify-content: center; align-items: center; background: #000;
@@ -50,17 +60,11 @@
             position: absolute; top: 50%; left: 50%; display: none; 
             transform-origin: center center; will-change: transform; 
         }
-
         #display-image { width: 100%; height: 100%; display: block; pointer-events: none; }
-        
-        #draw-canvas { 
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
-            z-index: 5; touch-action: none;
-        }
+        #draw-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 5; touch-action: none; }
         
         label { display: block; margin-top: 6px; font-size: 8px; color: #007AFF; font-weight: bold; text-transform: uppercase; }
-        select, input[type="range"] { width: 100%; margin-top: 2px; height: 20px; background: transparent; color: white; }
-        
+        input[type="range"], select { width: 100%; margin-top: 2px; height: 15px; background: #222; color: white; border: none; font-size: 8px; }
         .btn-row { display: flex; gap: 4px; margin-top: 6px; }
         .check-row { display: flex; align-items: center; gap: 5px; margin-top: 4px; font-size: 9px; }
         
@@ -79,12 +83,9 @@
         }
         #lock-shield { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 150; display: none; }
         
-        #gallery { margin-top: 10px; border-top: 1px solid #444; padding-top: 5px; }
-        #gallery-list { display: flex; gap: 5px; overflow-x: auto; padding: 5px 0; }
-        .gallery-item { 
-            min-width: 50px; height: 50px; border: 1px solid #555; border-radius: 4px; 
-            background-size: cover; background-position: center; flex-shrink: 0;
-        }
+        #gallery { margin-top: 8px; border-top: 1px solid #444; padding-top: 5px; }
+        #gallery-list { display: flex; gap: 4px; overflow-x: auto; padding: 4px 0; }
+        .gallery-item { min-width: 40px; height: 40px; border: 1px solid #555; border-radius: 3px; background-size: cover; flex-shrink: 0; }
     </style>
 </head>
 <body>
@@ -92,27 +93,43 @@
     <button id="show-menu-btn" onclick="toggleMenu(true)">SHOW MENU</button>
 
     <div id="ui-panel">
-        <label>1. Drawing-Starr Setup</label>
+        <label>1. Drawing-Starr Source</label>
         <label for="upload" class="custom-file-upload">+ CHOOSE IMAGE</label>
         <input type="file" id="upload" accept="image/*">
         
-        <label>2. Interaction Mode</label>
-        <select id="touchMode" onchange="updateView()">
+        <label>2. Focus Grid (1cm Overlap)</label>
+        <div class="grid-container">
+            <button class="grid-btn" onclick="setGrid('tl', 0)"></button>
+            <button class="grid-btn" onclick="setGrid('tm', 1)"></button>
+            <button class="grid-btn" onclick="setGrid('tr', 2)"></button>
+            <button class="grid-btn" onclick="setGrid('ml', 3)"></button>
+            <button class="grid-btn" onclick="setGrid('c', 4)"></button>
+            <button class="grid-btn" onclick="setGrid('mr', 5)"></button>
+            <button class="grid-btn" onclick="setGrid('bl', 6)"></button>
+            <button class="grid-btn" onclick="setGrid('bm', 7)"></button>
+            <button class="grid-btn" onclick="setGrid('br', 8)"></button>
+        </div>
+
+        <label>Mode & Zoom (<span id="zoomVal">1.0</span>x)</label>
+        <select id="touchMode">
             <option value="move">🤚 MOVE / ZOOM</option>
-            <option value="draw">✏️ HIGHLIGHT LINES</option>
+            <option value="draw">✏️ HIGHLIGHT</option>
         </select>
+        <input type="range" id="zoomRange" min="1.0" max="6.0" step="0.1" value="1.0" oninput="updateView()">
 
-        <label>Zoom (<span id="zoomVal">1.0</span>x)</label>
-        <input type="range" id="zoomRange" min="1.0" max="6.0" step="0.1" value="1.0">
-
-        <label>3. Visual Filters</label>
+        <label>3. View Options</label>
+        <div class="check-row">
+            <input type="checkbox" id="colorToggle" onchange="updateView()">
+            <span>STAY IN COLOR</span>
+        </div>
         <div class="check-row">
             <input type="checkbox" id="invertToggle" onchange="updateView()">
-            <span>INVERT (NEGATIVE)</span>
+            <span>INVERT COLORS</span>
         </div>
+        
         <div class="btn-row">
             <button class="gray-btn" onclick="rotateImg()">ROTATE</button>
-            <button class="red-btn" onclick="clearDraw()">CLEAR DRAW</button>
+            <button class="red-btn" onclick="clearDraw()">CLEAR</button>
         </div>
 
         <label>4. Line Definition</label>
@@ -146,11 +163,12 @@
         const showBtn = document.getElementById('show-menu-btn');
         const shield = document.getElementById('lock-shield');
         const unlockBtn = document.getElementById('unlock-btn');
+        const zoomRange = document.getElementById('zoomRange');
         
         let panX = 0, panY = 0, startX = 0, startY = 0, isDragging = false;
-        let rotation = 0, currentImgData = null, wakeLock = null;
+        let rotation = 0, flip = 1, gridMode = 'none', currentImgData = null, wakeLock = null;
 
-        // DB Setup for Saving
+        // DB Setup
         let db;
         const dbReq = indexedDB.open("DrawStaDB", 1);
         dbReq.onupgradeneeded = (e) => {
@@ -158,12 +176,6 @@
             db.createObjectStore("projects", { keyPath: "id", autoIncrement: true });
         };
         dbReq.onsuccess = (e) => { db = e.target.result; loadGallery(); };
-
-        async function requestWakeLock() {
-            try {
-                if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen');
-            } catch (err) { console.error(err); }
-        }
 
         document.getElementById('upload').onchange = (e) => {
             const file = e.target.files[0];
@@ -181,58 +193,34 @@
             reader.readAsDataURL(file);
         };
 
+        function setGrid(mode, btnIdx) {
+            gridMode = mode;
+            document.querySelectorAll('.grid-btn').forEach((b, i) => b.classList.toggle('active', i === btnIdx));
+            panX = 0; panY = 0;
+            if (parseFloat(zoomRange.value) === 1.0) zoomRange.value = 3.0;
+            updateView();
+        }
+
         function updateView() {
             if (!img.src) return;
-            const zoom = parseFloat(document.getElementById('zoomRange').value);
+            const zoom = parseFloat(zoomRange.value);
             document.getElementById('zoomVal').innerText = zoom.toFixed(1);
             
+            // 1cm overlap logic (Approx 40px offset depending on grid position)
+            let oX = "50%", oY = "50%";
+            const over = 40 / zoom; 
+            if (gridMode.includes('t')) oY = "0%"; if (gridMode.includes('b')) oY = "100%";
+            if (gridMode.includes('l')) oX = "0%"; if (gridMode.includes('r')) oX = "100%";
+
+            wrapper.style.transformOrigin = `${oX} ${oY}`;
             wrapper.style.width = (zoom * 100) + "vw";
-            wrapper.style.transform = `translate(-50%, -50%) translate(${panX}px, ${panY}px) rotate(${rotation}deg)`;
-            
-            const inv = document.getElementById('invertToggle').checked ? "invert(100%)" : "invert(0%)";
+            wrapper.style.transform = `scale(${zoom}) translate(${panX / zoom}px, ${panY / zoom}px) rotate(${rotation}deg) scaleX(${flip})`;
+
             const con = document.getElementById('contrast').value;
-            img.style.filter = `grayscale(100%) ${inv} contrast(${con}%)`;
+            const grayStr = document.getElementById('colorToggle').checked ? "grayscale(0%)" : "grayscale(100%)";
+            const invStr = document.getElementById('invertToggle').checked ? "invert(100%)" : "invert(0%)";
+            img.style.filter = `${grayStr} ${invStr} contrast(${con}%)`;
             canvas.style.filter = document.getElementById('invertToggle').checked ? "invert(100%)" : "none";
-        }
-
-        function saveProject() {
-            if (!currentImgData) return;
-            const transaction = db.transaction(["projects"], "readwrite");
-            const project = {
-                image: currentImgData,
-                drawing: canvas.toDataURL(),
-                timestamp: Date.now()
-            };
-            transaction.objectStore("projects").add(project);
-            transaction.oncomplete = () => { alert("Project Saved!"); loadGallery(); };
-        }
-
-        function loadGallery() {
-            const list = document.getElementById('gallery-list');
-            list.innerHTML = "";
-            db.transaction("projects").objectStore("projects").openCursor(null, "prev").onsuccess = (e) => {
-                const cursor = e.target.result;
-                if (cursor) {
-                    const item = document.createElement('div');
-                    item.className = "gallery-item";
-                    item.style.backgroundImage = `url(${cursor.value.image})`;
-                    item.onclick = () => {
-                        currentImgData = cursor.value.image;
-                        img.src = cursor.value.image;
-                        wrapper.style.display = 'block';
-                        img.onload = () => {
-                            canvas.width = img.naturalWidth;
-                            canvas.height = img.naturalHeight;
-                            const overlay = new Image();
-                            overlay.onload = () => ctx.drawImage(overlay, 0, 0);
-                            overlay.src = cursor.value.drawing;
-                            updateView();
-                        };
-                    };
-                    list.appendChild(item);
-                    cursor.continue();
-                }
-            };
         }
 
         const handleTouch = (e) => {
@@ -240,10 +228,10 @@
             const mode = document.getElementById('touchMode').value;
             const touch = e.touches[0];
             const rect = canvas.getBoundingClientRect();
-            const scaleX = canvas.width / rect.width;
-            const scaleY = canvas.height / rect.height;
-            const x = (touch.clientX - rect.left) * scaleX;
-            const y = (touch.clientY - rect.top) * scaleY;
+            const zoom = parseFloat(zoomRange.value);
+            
+            const x = (touch.clientX - rect.left) * (canvas.width / rect.width);
+            const y = (touch.clientY - rect.top) * (canvas.height / rect.height);
 
             if (mode === 'draw') {
                 if (e.type === 'touchstart') { ctx.beginPath(); ctx.moveTo(x, y); }
@@ -260,15 +248,50 @@
         canvas.addEventListener('touchmove', (e) => { e.preventDefault(); handleTouch(e); }, { passive: false });
         window.addEventListener('touchend', () => isDragging = false);
 
+        function saveProject() {
+            if (!currentImgData) return;
+            const transaction = db.transaction(["projects"], "readwrite");
+            transaction.objectStore("projects").add({ image: currentImgData, drawing: canvas.toDataURL(), timestamp: Date.now() });
+            transaction.oncomplete = loadGallery;
+        }
+
+        function loadGallery() {
+            const list = document.getElementById('gallery-list');
+            list.innerHTML = "";
+            db.transaction("projects").objectStore("projects").openCursor(null, "prev").onsuccess = (e) => {
+                const cursor = e.target.result;
+                if (cursor) {
+                    const item = document.createElement('div');
+                    item.className = "gallery-item";
+                    item.style.backgroundImage = `url(${cursor.value.image})`;
+                    item.onclick = () => {
+                        currentImgData = cursor.value.image;
+                        img.src = cursor.value.image;
+                        wrapper.style.display = 'block';
+                        img.onload = () => {
+                            canvas.width = img.naturalWidth; canvas.height = img.naturalHeight;
+                            const overlay = new Image();
+                            overlay.onload = () => ctx.drawImage(overlay, 0, 0);
+                            overlay.src = cursor.value.drawing;
+                            updateView();
+                        };
+                    };
+                    list.appendChild(item);
+                    cursor.continue();
+                }
+            };
+        }
+
         function clearDraw() { ctx.clearRect(0, 0, canvas.width, canvas.height); }
         function rotateImg() { rotation = (rotation + 90) % 360; updateView(); }
-        function resetAll() { panX = 0; panY = 0; rotation = 0; document.getElementById('zoomRange').value = 1.0; updateView(); }
+        function flipImg() { flip *= -1; updateView(); }
+        function resetAll() { panX = 0; panY = 0; rotation = 0; flip = 1; gridMode = 'none'; zoomRange.value = 1.0; updateView(); }
         function toggleMenu(v) { ui.style.display = v ? 'block' : 'none'; showBtn.style.display = v ? 'none' : 'block'; }
 
-        function lockApp() {
+        async function lockApp() {
             if (!img.src) return;
             toggleMenu(false); shield.style.display = 'block'; unlockBtn.style.display = 'flex';
-            requestWakeLock();
+            if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen');
             if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen();
         }
 
