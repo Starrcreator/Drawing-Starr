@@ -3,72 +3,53 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Drawing-Starr Pro</title>
-    
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="theme-color" content="#000000">
-
+    <title>Drawing-Starr Compact</title>
     <style>
-        body { 
-            margin: 0; background: #000; overflow: hidden; font-family: -apple-system, sans-serif; 
-            height: 100vh; width: 100vw; touch-action: none; user-select: none; 
-        }
+        body { margin: 0; background: #000; overflow: hidden; font-family: sans-serif; height: 100vh; width: 100vw; touch-action: none; }
         
         #ui-panel { 
-            position: absolute; top: 10px; left: 10px; z-index: 100; 
-            background: rgba(28, 28, 30, 0.95); backdrop-filter: blur(15px);
-            padding: 15px; border-radius: 16px; color: white; width: 210px;
-            border: 1px solid rgba(255,255,255,0.15); max-height: 85vh; overflow-y: auto;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.8);
+            position: absolute; top: 0; left: 0; z-index: 100; 
+            background: rgba(20, 20, 20, 0.9); width: 140px; height: 100vh;
+            padding: 10px; border-right: 1px solid #444; color: white;
+            box-sizing: border-box; display: flex; flex-direction: column; gap: 8px;
         }
 
         #show-menu-btn {
-            position: absolute; top: 15px; left: 15px; z-index: 101;
-            background: #007AFF; color: white; border: none; padding: 12px 20px;
-            border-radius: 25px; font-size: 11px; font-weight: bold; display: none;
+            position: absolute; top: 10px; left: 10px; z-index: 101;
+            background: #007AFF; color: white; border: none; padding: 8px;
+            border-radius: 5px; font-size: 10px; display: none;
         }
 
-        .custom-file-upload {
-            display: block; width: 100%; padding: 14px 10px; background: rgba(0, 122, 255, 0.15);
-            border: 2px dashed #007AFF; border-radius: 10px; color: #007AFF;
-            text-align: center; font-weight: bold; font-size: 11px; cursor: pointer;
-            box-sizing: border-box; margin-bottom: 12px;
+        .upload-lbl {
+            display: block; padding: 6px; background: #333; border: 1px dashed #007AFF;
+            border-radius: 4px; color: #007AFF; text-align: center; font-size: 9px; cursor: pointer;
         }
 
         .grid-container {
-            display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px;
-            margin: 10px auto; width: 120px;
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px;
         }
-        .grid-btn { background: #3a3a3c; border: 1px solid #555; height: 35px; border-radius: 8px; cursor: pointer; }
-        .grid-btn.active { background: #007AFF; border-color: #fff; box-shadow: 0 0 10px #007AFF; }
+        .grid-btn { background: #444; border: 1px solid #666; height: 25px; border-radius: 3px; cursor: pointer; }
+        .grid-btn.active { background: #007AFF; border-color: #fff; }
 
-        #stage { 
-            position: relative; width: 100vw; height: 100vh; overflow: hidden; 
-            display: flex; align-items: center; justify-content: center; background: #000;
-        }
-        
-        #square-box { 
-            position: absolute; display: flex; align-items: center; justify-content: center;
-            transform-origin: center center; will-change: transform;
-        }
+        #stage { position: relative; width: 100vw; height: 100vh; overflow: hidden; background: #000; }
+        #square-box { position: absolute; transform-origin: center center; }
         #display-image { width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
         #draw-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 5; touch-action: none; }
 
-        .tool-row { display: flex; gap: 8px; margin-top: 12px; }
-        .tool-btn { flex: 1; padding: 14px; border-radius: 10px; font-size: 18px; background: #3a3a3c; border: none; color: white; cursor: pointer; }
-        .tool-btn.active { background: #007AFF; transform: scale(1.05); }
+        .tool-row { display: flex; gap: 3px; }
+        .tool-btn { flex: 1; padding: 10px; border-radius: 4px; background: #333; border: none; color: white; font-size: 14px; }
+        .tool-btn.active { background: #007AFF; }
         
-        label { display: block; margin-top: 15px; font-size: 10px; color: #8e8e93; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
-        input[type="range"] { width: 100%; margin-top: 8px; height: 20px; cursor: pointer; }
+        label { font-size: 8px; color: #aaa; text-transform: uppercase; margin-top: 5px; }
+        input[type="range"] { width: 100%; margin: 0; }
         
-        .blue-btn { background: #007AFF; color: white; width: 100%; margin-top: 18px; padding: 16px; border-radius: 12px; font-weight: bold; font-size: 13px; border: none; }
-        .red-btn { background: rgba(255, 69, 58, 0.15); color: #ff453a; padding: 10px; font-size: 10px; border-radius: 8px; margin-top: 10px; width: 100%; border: 1px solid #ff453a; }
+        .action-btn { background: #007AFF; color: white; padding: 10px; border-radius: 5px; font-weight: bold; font-size: 10px; border: none; margin-top: auto; }
+        .clear-btn { background: #444; color: #ff453a; padding: 5px; font-size: 8px; border: 1px solid #ff453a; border-radius: 3px; margin-top: 5px; }
         
         #unlock-btn {
-            position: fixed; top: 30px; right: 30px; z-index: 200; width: 70px; height: 70px;
-            background: rgba(0,0,0,0.6); border: 2px solid #fff; border-radius: 50%;
-            color: white; font-size: 10px; display: none; align-items: center; justify-content: center; text-align: center; backdrop-filter: blur(8px);
+            position: fixed; top: 10px; right: 10px; z-index: 200; width: 50px; height: 50px;
+            background: rgba(0,0,0,0.5); border: 2px solid #fff; border-radius: 50%;
+            color: white; font-size: 8px; display: none; align-items: center; justify-content: center; text-align: center;
         }
         #lock-shield { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 150; display: none; }
     </style>
@@ -78,11 +59,11 @@
     <button id="show-menu-btn" onclick="toggleMenu(true)">MENU</button>
 
     <div id="ui-panel">
-        <label>1. Image Source</label>
-        <label for="upload" class="custom-file-upload" id="upload-label">📁 UPLOAD IMAGE</label>
+        <label>1. Image</label>
+        <label for="upload" class="upload-lbl">LOAD PHOTO</label>
         <input type="file" id="upload" accept="image/*" style="display:none">
         
-        <label>2. Focus Block (1cm Overlap)</label>
+        <label>2. Blocks</label>
         <div class="grid-container">
             <button class="grid-btn" onclick="goToQuad(0,0,0)"></button>
             <button class="grid-btn" onclick="goToQuad(1,0,1)"></button>
@@ -95,26 +76,25 @@
             <button class="grid-btn" onclick="goToQuad(2,2,8)"></button>
         </div>
 
-        <label>3. Mode & Tools</label>
+        <label>3. Tools</label>
         <div class="tool-row">
             <button id="btn-move" class="tool-btn active" onclick="setTool('move')">🤚</button>
             <button id="btn-draw" class="tool-btn" onclick="setTool('draw')">✏️</button>
             <button id="btn-erase" class="tool-btn" onclick="setTool('erase')">🧼</button>
         </div>
         
-        <label>Highlight Color</label>
-        <input type="color" id="penColor" value="#007AFF" style="width:100%; height:40px; border:none; background:transparent; cursor:pointer;">
-
-        <label>Zoom Level: <span id="zLabel">1.0</span>x</label>
+        <label>Zoom (<span id="zVal">1.0</span>x)</label>
         <input type="range" id="zoomRange" min="1.0" max="8.0" step="0.1" value="1.0" oninput="updateView()">
 
-        <div style="display:flex; justify-content: space-between; margin-top:15px;">
-            <label style="color:white; margin:0;"><input type="checkbox" id="colorToggle" onchange="updateView()"> COLOR</label>
-            <label style="color:white; margin:0;"><input type="checkbox" id="invToggle" onchange="updateView()"> INVERT</label>
+        <input type="color" id="penColor" value="#007AFF" style="width:100%; height:25px; border:none; background:none; margin-top:5px;">
+
+        <div style="font-size:8px; margin-top:5px;">
+            <label style="color:white; display:block;"><input type="checkbox" id="colorToggle" onchange="updateView()"> STAY COLOR</label>
+            <label style="color:white; display:block;"><input type="checkbox" id="invToggle" onchange="updateView()"> INVERT</label>
         </div>
 
-        <button class="red-btn" onclick="clearDraw()">CLEAR ALL</button>
-        <button class="blue-btn" onclick="lockApp()">LOCK & START TRACING</button>
+        <button class="clear-btn" onclick="clearDraw()">CLEAR ALL</button>
+        <button class="action-btn" onclick="lockApp()">LOCK & START</button>
     </div>
 
     <div id="unlock-btn" ondblclick="unlockApp()">DBL TAP<br>UNLOCK</div>
@@ -136,29 +116,23 @@
         const showBtn = document.getElementById('show-menu-btn');
         const shield = document.getElementById('lock-shield');
         const unlockBtn = document.getElementById('unlock-btn');
-        const zoomRange = document.getElementById('zoomRange');
+        const zSlider = document.getElementById('zoomRange');
         
         let panX = 0, panY = 0, qX = 0, qY = 0, startX = 0, startY = 0;
         let isDragging = false, currentTool = 'move', wakeLock = null, side = 0;
 
         document.getElementById('upload').onchange = (e) => {
-            const file = e.target.files[0];
-            if(!file) return;
             const reader = new FileReader();
             reader.onload = (f) => { 
                 img.src = f.target.result; 
                 img.onload = () => {
-                    // Create Square Workspace based on largest dimension
                     side = Math.max(img.naturalWidth, img.naturalHeight);
-                    box.style.width = side + 'px';
-                    box.style.height = side + 'px';
-                    canvas.width = side;
-                    canvas.height = side;
-                    document.getElementById('upload-label').innerText = "✅ LOADED";
+                    box.style.width = side + 'px'; box.style.height = side + 'px';
+                    canvas.width = side; canvas.height = side;
                     resetView();
                 };
             };
-            reader.readAsDataURL(file);
+            reader.readAsDataURL(e.target.files[0]);
         };
 
         function setTool(t) {
@@ -168,67 +142,48 @@
         }
 
         function goToQuad(col, row, idx) {
-            // Jump 45% of side for 10% overlap
             const moveStep = side * 0.45;
             qX = (1 - col) * moveStep;
             qY = (1 - row) * moveStep;
-            
             panX = 0; panY = 0;
             document.querySelectorAll('.grid-btn').forEach((b, i) => b.classList.toggle('active', i === idx));
-            if (zoomRange.value < 2.5) zoomRange.value = 3.0;
+            // Removed the line that forced zoom to 3.0
             updateView();
         }
 
         function updateView() {
             if (!side) return;
-            const zoom = parseFloat(zoomRange.value);
-            document.getElementById('zLabel').innerText = zoom.toFixed(1);
-
-            // COMPENSATED MATH: Division by zoom level ensures quadrants stay put
-            // and panning feels 1:1 with finger movement.
-            const finalX = (qX + panX) / zoom;
-            const finalY = (qY + panY) / zoom;
-
-            box.style.transform = `scale(${zoom}) translate(${finalX}px, ${finalY}px)`;
+            const zoom = parseFloat(zSlider.value);
+            document.getElementById('zVal').innerText = zoom.toFixed(1);
+            // Combined movement divided by zoom for 1:1 scale accuracy
+            const tx = (qX + panX) / zoom;
+            const ty = (qY + panY) / zoom;
+            box.style.transform = `scale(${zoom}) translate(${tx}px, ${ty}px)`;
             
             const gray = document.getElementById('colorToggle').checked ? 0 : 100;
             const inv = document.getElementById('invToggle').checked ? 100 : 0;
-            img.style.filter = `grayscale(${gray}%) invert(${inv}%) contrast(200%)`;
+            img.style.filter = `grayscale(${gray}%) invert(${inv}%) contrast(180%)`;
         }
 
         const handleTouch = (e) => {
             if (shield.style.display === 'block') return;
             const touch = e.touches[0];
             const rect = canvas.getBoundingClientRect();
-            
-            // Map touch to high-res canvas pixels
             const scaleFac = side / rect.width;
             const x = (touch.clientX - rect.left) * scaleFac;
             const y = (touch.clientY - rect.top) * scaleFac;
 
             if (currentTool === 'move') {
-                if (e.type === 'touchstart') { 
-                    isDragging = true; 
-                    // Manual pan needs to be multiplied by zoom for the start offset
-                    startX = touch.clientX - panX; 
-                    startY = touch.clientY - panY; 
-                }
-                else if (e.type === 'touchmove' && isDragging) { 
-                    panX = touch.clientX - startX; 
-                    panY = touch.clientY - startY; 
-                    updateView(); 
-                }
+                if (e.type === 'touchstart') { isDragging = true; startX = touch.clientX - panX; startY = touch.clientY - panY; }
+                else if (e.type === 'touchmove' && isDragging) { panX = touch.clientX - startX; panY = touch.clientY - startY; updateView(); }
             } else {
                 if (e.type === 'touchstart') { ctx.beginPath(); ctx.moveTo(x, y); }
                 else if (e.type === 'touchmove') {
                     ctx.globalCompositeOperation = (currentTool === 'erase') ? 'destination-out' : 'source-over';
                     ctx.lineTo(x, y);
                     ctx.strokeStyle = document.getElementById('penColor').value;
-                    // Scale brush size based on side length so it looks consistent
-                    const brushSize = (side / 1000) * (currentTool === 'erase' ? 40 : 10);
-                    ctx.lineWidth = brushSize;
-                    ctx.lineCap = "round";
-                    ctx.stroke();
+                    ctx.lineWidth = (side / 1000) * (currentTool === 'erase' ? 40 : 10);
+                    ctx.lineCap = "round"; ctx.stroke();
                 }
             }
         };
@@ -237,21 +192,18 @@
         canvas.addEventListener('touchmove', (e) => { e.preventDefault(); handleTouch(e); }, { passive: false });
         window.addEventListener('touchend', () => isDragging = false);
 
-        function resetView() { qX = 0; qY = 0; panX = 0; panY = 0; zoomRange.value = 1.0; updateView(); }
-        function clearDraw() { if(confirm("Permanently delete all highlight lines?")) ctx.clearRect(0, 0, side, side); }
-        function toggleMenu(v) { ui.style.display = v ? 'block' : 'none'; showBtn.style.display = v ? 'none' : 'block'; }
+        function resetView() { qX = 0; qY = 0; panX = 0; panY = 0; zSlider.value = 1.0; updateView(); }
+        function clearDraw() { if(confirm("Clear Highlights?")) ctx.clearRect(0, 0, side, side); }
+        function toggleMenu(v) { ui.style.display = v ? 'flex' : 'none'; showBtn.style.display = v ? 'none' : 'block'; }
 
         async function lockApp() {
-            if(!img.src) return alert("Upload an image first.");
             toggleMenu(false); shield.style.display = 'block'; unlockBtn.style.display = 'flex';
             if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen');
-            if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen();
         }
 
         function unlockApp() {
             toggleMenu(true); shield.style.display = 'none'; unlockBtn.style.display = 'none';
             if (wakeLock) { wakeLock.release(); wakeLock = null; }
-            if (document.exitFullscreen) try { document.exitFullscreen(); } catch(e) {}
         }
     </script>
 </body>
