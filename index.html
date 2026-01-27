@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Drawing-Starr Compact</title>
+    <title>Drawing-Starr Precision</title>
     <style>
         body { margin: 0; background: #000; overflow: hidden; font-family: sans-serif; height: 100vh; width: 100vw; touch-action: none; }
         
         #ui-panel { 
             position: absolute; top: 0; left: 0; z-index: 100; 
-            background: rgba(20, 20, 20, 0.9); width: 140px; height: 100vh;
+            background: rgba(20, 20, 20, 0.95); width: 140px; height: 100vh;
             padding: 10px; border-right: 1px solid #444; color: white;
             box-sizing: border-box; display: flex; flex-direction: column; gap: 8px;
         }
@@ -21,14 +21,14 @@
         }
 
         .upload-lbl {
-            display: block; padding: 6px; background: #333; border: 1px dashed #007AFF;
+            display: block; padding: 8px; background: #333; border: 1px dashed #007AFF;
             border-radius: 4px; color: #007AFF; text-align: center; font-size: 9px; cursor: pointer;
         }
 
         .grid-container {
-            display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px;
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px;
         }
-        .grid-btn { background: #444; border: 1px solid #666; height: 25px; border-radius: 3px; cursor: pointer; }
+        .grid-btn { background: #444; border: 1px solid #666; height: 30px; border-radius: 3px; cursor: pointer; }
         .grid-btn.active { background: #007AFF; border-color: #fff; }
 
         #stage { position: relative; width: 100vw; height: 100vh; overflow: hidden; background: #000; }
@@ -36,19 +36,19 @@
         #display-image { width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
         #draw-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 5; touch-action: none; }
 
-        .tool-row { display: flex; gap: 3px; }
-        .tool-btn { flex: 1; padding: 10px; border-radius: 4px; background: #333; border: none; color: white; font-size: 14px; }
+        .tool-row { display: flex; gap: 4px; }
+        .tool-btn { flex: 1; padding: 10px; border-radius: 4px; background: #333; border: none; color: white; font-size: 16px; }
         .tool-btn.active { background: #007AFF; }
         
-        label { font-size: 8px; color: #aaa; text-transform: uppercase; margin-top: 5px; }
+        label { font-size: 8px; color: #888; text-transform: uppercase; margin-top: 5px; }
         input[type="range"] { width: 100%; margin: 0; }
         
-        .action-btn { background: #007AFF; color: white; padding: 10px; border-radius: 5px; font-weight: bold; font-size: 10px; border: none; margin-top: auto; }
-        .clear-btn { background: #444; color: #ff453a; padding: 5px; font-size: 8px; border: 1px solid #ff453a; border-radius: 3px; margin-top: 5px; }
+        .action-btn { background: #007AFF; color: white; padding: 12px; border-radius: 6px; font-weight: bold; font-size: 10px; border: none; margin-top: auto; }
+        .clear-btn { background: transparent; color: #ff453a; padding: 5px; font-size: 8px; border: 1px solid #ff453a; border-radius: 4px; margin-top: 5px; }
         
         #unlock-btn {
-            position: fixed; top: 10px; right: 10px; z-index: 200; width: 50px; height: 50px;
-            background: rgba(0,0,0,0.5); border: 2px solid #fff; border-radius: 50%;
+            position: fixed; top: 15px; right: 15px; z-index: 200; width: 55px; height: 55px;
+            background: rgba(0,0,0,0.7); border: 2px solid #fff; border-radius: 50%;
             color: white; font-size: 8px; display: none; align-items: center; justify-content: center; text-align: center;
         }
         #lock-shield { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 150; display: none; }
@@ -63,7 +63,7 @@
         <label for="upload" class="upload-lbl">LOAD PHOTO</label>
         <input type="file" id="upload" accept="image/*" style="display:none">
         
-        <label>2. Blocks</label>
+        <label>2. 9-Block Grid</label>
         <div class="grid-container">
             <button class="grid-btn" onclick="goToQuad(0,0,0)"></button>
             <button class="grid-btn" onclick="goToQuad(1,0,1)"></button>
@@ -84,13 +84,13 @@
         </div>
         
         <label>Zoom (<span id="zVal">1.0</span>x)</label>
-        <input type="range" id="zoomRange" min="1.0" max="8.0" step="0.1" value="1.0" oninput="updateView()">
+        <input type="range" id="zoomRange" min="1.0" max="10.0" step="0.1" value="1.0" oninput="updateView()">
 
-        <input type="color" id="penColor" value="#007AFF" style="width:100%; height:25px; border:none; background:none; margin-top:5px;">
+        <input type="color" id="penColor" value="#ff0000" style="width:100%; height:30px; border:none; background:none; margin-top:5px;">
 
-        <div style="font-size:8px; margin-top:5px;">
-            <label style="color:white; display:block;"><input type="checkbox" id="colorToggle" onchange="updateView()"> STAY COLOR</label>
-            <label style="color:white; display:block;"><input type="checkbox" id="invToggle" onchange="updateView()"> INVERT</label>
+        <div style="font-size:9px; margin-top:5px; display:flex; flex-direction:column; gap:5px;">
+            <label style="color:white; display:flex; align-items:center; gap:5px;"><input type="checkbox" id="colorToggle" checked onchange="updateView()"> COLOR</label>
+            <label style="color:white; display:flex; align-items:center; gap:5px;"><input type="checkbox" id="invToggle" onchange="updateView()"> INVERT</label>
         </div>
 
         <button class="clear-btn" onclick="clearDraw()">CLEAR ALL</button>
@@ -127,8 +127,10 @@
                 img.src = f.target.result; 
                 img.onload = () => {
                     side = Math.max(img.naturalWidth, img.naturalHeight);
-                    box.style.width = side + 'px'; box.style.height = side + 'px';
-                    canvas.width = side; canvas.height = side;
+                    box.style.width = side + 'px'; 
+                    box.style.height = side + 'px';
+                    canvas.width = side; 
+                    canvas.height = side;
                     resetView();
                 };
             };
@@ -142,12 +144,19 @@
         }
 
         function goToQuad(col, row, idx) {
-            const moveStep = side * 0.45;
-            qX = (1 - col) * moveStep;
-            qY = (1 - row) * moveStep;
+            // PIXEL-PERFECT MATH
+            // Divide the square into 3 parts. 
+            // We shift by (side/3) minus 40px to ensure overlap.
+            const section = side / 3;
+            const overlap = 40; 
+            
+            // Calculate absolute pixel offsets
+            // Col 0: Left, Col 1: Middle, Col 2: Right
+            qX = (1 - col) * (section - (overlap / 2));
+            qY = (1 - row) * (section - (overlap / 2));
+            
             panX = 0; panY = 0;
             document.querySelectorAll('.grid-btn').forEach((b, i) => b.classList.toggle('active', i === idx));
-            // Removed the line that forced zoom to 3.0
             updateView();
         }
 
@@ -155,7 +164,8 @@
             if (!side) return;
             const zoom = parseFloat(zSlider.value);
             document.getElementById('zVal').innerText = zoom.toFixed(1);
-            // Combined movement divided by zoom for 1:1 scale accuracy
+            
+            // Compensation: movement / zoom
             const tx = (qX + panX) / zoom;
             const ty = (qY + panY) / zoom;
             box.style.transform = `scale(${zoom}) translate(${tx}px, ${ty}px)`;
@@ -174,16 +184,25 @@
             const y = (touch.clientY - rect.top) * scaleFac;
 
             if (currentTool === 'move') {
-                if (e.type === 'touchstart') { isDragging = true; startX = touch.clientX - panX; startY = touch.clientY - panY; }
-                else if (e.type === 'touchmove' && isDragging) { panX = touch.clientX - startX; panY = touch.clientY - startY; updateView(); }
+                if (e.type === 'touchstart') { 
+                    isDragging = true; 
+                    startX = touch.clientX - panX; 
+                    startY = touch.clientY - panY; 
+                }
+                else if (e.type === 'touchmove' && isDragging) { 
+                    panX = touch.clientX - startX; 
+                    panY = touch.clientY - startY; 
+                    updateView(); 
+                }
             } else {
                 if (e.type === 'touchstart') { ctx.beginPath(); ctx.moveTo(x, y); }
                 else if (e.type === 'touchmove') {
                     ctx.globalCompositeOperation = (currentTool === 'erase') ? 'destination-out' : 'source-over';
                     ctx.lineTo(x, y);
                     ctx.strokeStyle = document.getElementById('penColor').value;
-                    ctx.lineWidth = (side / 1000) * (currentTool === 'erase' ? 40 : 10);
-                    ctx.lineCap = "round"; ctx.stroke();
+                    ctx.lineWidth = (side / 1000) * (currentTool === 'erase' ? 50 : 12);
+                    ctx.lineCap = "round"; 
+                    ctx.stroke();
                 }
             }
         };
