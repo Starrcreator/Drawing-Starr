@@ -567,16 +567,26 @@
             if (!side) return;
             
             const section = side / 3;
-            const overlap = 60; // Increased overlap for better context
+            const overlap = 60; // Overlap for better context
             
-            // Calculate position with overlap compensation
-            qX = (1 - col) * (section - overlap/2);
-            qY = (1 - row) * (section - overlap/2);
-            
-            // Center the view
+            // Calculate viewport dimensions
             const vw = window.innerWidth;
             const vh = window.innerHeight;
             const zoom = parseFloat(zSlider.value);
+            
+            // Calculate the center offset needed for each section
+            // We want to center each third of the image in the viewport
+            const centerOffsetX = (vw / 2) / zoom;
+            const centerOffsetY = (vh / 2) / zoom;
+            
+            // Calculate base position for each column/row
+            // Col 0 = left third, Col 1 = middle third, Col 2 = right third
+            const baseX = col * section;
+            const baseY = row * section;
+            
+            // Position to center the section in viewport
+            qX = -(baseX + section/2 - centerOffsetX);
+            qY = -(baseY + section/2 - centerOffsetY);
             
             panX = 0; 
             panY = 0;
