@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#007AFF">
-    <title>DrawSta - PWA Edition</title>
+    <title>DrawSta - Pro Tracing</title>
     <style>
         * { 
             box-sizing: border-box; 
@@ -270,6 +270,15 @@
         function saveState() { undoStack.push(ctx.getImageData(0, 0, side, side)); if (undoStack.length > 30) undoStack.shift(); redoStack = []; }
         function undo() { if (undoStack.length > 0) { redoStack.push(ctx.getImageData(0, 0, side, side)); ctx.putImageData(undoStack.pop(), 0, 0); } }
         function redo() { if (redoStack.length > 0) { undoStack.push(ctx.getImageData(0, 0, side, side)); ctx.putImageData(redoStack.pop(), 0, 0); } }
+
+        // SERVICE WORKER REGISTRATION (FOR OFFLINE / STORE COMPLIANCE)
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then(reg => console.log('Service Worker Active'))
+                    .catch(err => console.log('Service Worker Error', err));
+            });
+        }
     </script>
 </body>
 </html>
