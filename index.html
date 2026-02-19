@@ -112,6 +112,9 @@
             height: 100vh; 
             overflow: hidden; 
             background: #000; 
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         #square-box { 
             position: absolute; 
@@ -352,7 +355,6 @@
             border-top: 1px solid #333;
         }
 
-        /* Position indicator */
         #position-indicator {
             position: fixed;
             bottom: 15px;
@@ -436,7 +438,7 @@
                 <span>Zoom</span>
                 <span class="slider-value"><span id="zVal">1.0</span>x</span>
             </div>
-            <input type="range" id="zoomRange" min="1.0" max="10.0" step="0.1" value="1.0" oninput="updateView()">
+            <input type="range" id="zoomRange" min="0.1" max="10.0" step="0.01" value="1.0" oninput="updateView()">
         </div>
 
         <div class="slider-container">
@@ -467,8 +469,8 @@
         <button class="action-btn" onclick="lockApp()">🔒 LOCK & START</button>
 
         <div class="version-info">
-            DrawSta v2.0<br>
-            Enhanced Edition
+            DrawSta v2.1<br>
+            Auto-Scale Enabled
         </div>
     </div>
 
@@ -485,7 +487,6 @@
     </div>
 
     <script>
-        // DOM Elements
         const img = document.getElementById('display-image');
         const canvas = document.getElementById('draw-canvas');
         const ctx = canvas.getContext('2d');
@@ -497,32 +498,22 @@
         const shield = document.getElementById('lock-shield');
         const unlockBtn = document.getElementById('unlock-btn');
         const posIndicator = document.getElementById('position-indicator');
-        
-        // Sliders
         const zSlider = document.getElementById('zoomRange');
         const brightSlider = document.getElementById('brightnessRange');
         const contrastSlider = document.getElementById('contrastRange');
         
-        // State variables
         let panX = 0, panY = 0, qX = 0, qY = 0, startX = 0, startY = 0;
         let isDragging = false, currentTool = 'move', wakeLock = null, side = 0;
         let currentBrushSize = 'medium';
         let currentGridSection = -1;
+        let minZoom = 1.0; 
         
-        // Undo/Redo stacks
         let undoStack = [];
         let redoStack = [];
         const MAX_UNDO_STEPS = 30;
 
-        // Brush size settings
-        const brushSizes = {
-            small: 8,
-            medium: 12,
-            large: 20,
-            xlarge: 35
-        };
+        const brushSizes = { small: 8, medium: 12, large: 20, xlarge: 35 };
 
-        // Image upload handler
         document.getElementById('upload').onchange = (e) => {
             const reader = new FileReader();
             reader.onload = (f) => { 
@@ -536,10 +527,14 @@
                     gridCanvas.width = side;
                     gridCanvas.height = side;
                     
-                    // Clear drawing when new image loaded
                     ctx.clearRect(0, 0, side, side);
-                    undoStack = [];
-                    redoStack = [];
+                    undoStack = []; redoStack = [];
+                    
+                    // NEW: CALCULATE MIN ZOOM
+                    const screenMin = Math.min(window.innerWidth, window.innerHeight);
+                    minZoom = screenMin / side;
+                    zSlider.min = (minZoom * 0.8).toFixed(2); // Allow slight extra zoom out
+                    zSlider.value = minZoom.toFixed(2); 
                     
                     resetView();
                     drawGrid();
@@ -548,102 +543,62 @@
             reader.readAsDataURL(e.target.files[0]);
         };
 
-        // Tool selection
         function setTool(t) {
             currentTool = t;
             document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
             document.getElementById('btn-' + t).classList.add('active');
         }
 
-        // Brush size selection
         function setBrushSize(size) {
             currentBrushSize = size;
             document.querySelectorAll('.brush-btn').forEach(b => b.classList.remove('active'));
             event.target.classList.add('active');
         }
 
-        // Grid navigation with improved precision
         function goToQuad(col, row, idx) {
             if (!side) return;
-            
             const section = side / 3;
-            const overlap = 60; // Overlap for better context
-            
-            // Calculate viewport dimensions
             const vw = window.innerWidth;
             const vh = window.innerHeight;
             const zoom = parseFloat(zSlider.value);
-            
-            // Calculate the center offset needed for each section
-            // We want to center each third of the image in the viewport
             const centerOffsetX = (vw / 2) / zoom;
             const centerOffsetY = (vh / 2) / zoom;
-            
-            // Calculate base position for each column/row
-            // Col 0 = left third, Col 1 = middle third, Col 2 = right third
             const baseX = col * section;
             const baseY = row * section;
-            
-            // Position to center the section in viewport
             qX = -(baseX + section/2 - centerOffsetX);
             qY = -(baseY + section/2 - centerOffsetY);
-            
-            panX = 0; 
-            panY = 0;
-            
+            panX = 0; panY = 0;
             currentGridSection = idx;
-            document.querySelectorAll('.grid-btn').forEach((b, i) => {
-                b.classList.toggle('active', i === idx);
-            });
-            
+            document.querySelectorAll('.grid-btn').forEach((b, i) => b.classList.toggle('active', i === idx));
             updateView();
             updatePositionIndicator(idx + 1);
         }
 
-        // Update view with all filters and transformations
         function updateView() {
             if (!side) return;
-            
             const zoom = parseFloat(zSlider.value);
             const brightness = parseInt(brightSlider.value);
             const contrast = parseInt(contrastSlider.value);
-            
-            // Update display values
-            document.getElementById('zVal').innerText = zoom.toFixed(1);
+            document.getElementById('zVal').innerText = zoom.toFixed(2);
             document.getElementById('brightVal').innerText = brightness;
             document.getElementById('contrastVal').innerText = contrast;
-            
-            // Calculate transformation
             const tx = (qX + panX) / zoom;
             const ty = (qY + panY) / zoom;
             box.style.transform = `scale(${zoom}) translate(${tx}px, ${ty}px)`;
-            
-            // Apply filters
             const gray = document.getElementById('colorToggle').checked ? 0 : 100;
             const inv = document.getElementById('invToggle').checked ? 100 : 0;
             img.style.filter = `grayscale(${gray}%) invert(${inv}%) brightness(${brightness}%) contrast(${contrast}%)`;
         }
 
-        // Grid overlay
         function drawGrid() {
             if (!side) return;
             gridCtx.clearRect(0, 0, side, side);
             gridCtx.strokeStyle = 'rgba(0, 122, 255, 0.5)';
             gridCtx.lineWidth = side / 500;
-            
-            // Draw 3x3 grid
             for (let i = 1; i < 3; i++) {
                 const pos = (side / 3) * i;
-                // Vertical lines
-                gridCtx.beginPath();
-                gridCtx.moveTo(pos, 0);
-                gridCtx.lineTo(pos, side);
-                gridCtx.stroke();
-                // Horizontal lines
-                gridCtx.beginPath();
-                gridCtx.moveTo(0, pos);
-                gridCtx.lineTo(side, pos);
-                gridCtx.stroke();
+                gridCtx.beginPath(); gridCtx.moveTo(pos, 0); gridCtx.lineTo(pos, side); gridCtx.stroke();
+                gridCtx.beginPath(); gridCtx.moveTo(0, pos); gridCtx.lineTo(side, pos); gridCtx.stroke();
             }
         }
 
@@ -653,208 +608,97 @@
             if (show && side) drawGrid();
         }
 
-        // Touch/drawing handlers
         const handleTouch = (e) => {
             if (shield.style.display === 'block') return;
-            
             const touch = e.touches[0];
             const rect = canvas.getBoundingClientRect();
             const scaleFac = side / rect.width;
             const x = (touch.clientX - rect.left) * scaleFac;
             const y = (touch.clientY - rect.top) * scaleFac;
-
             if (currentTool === 'move') {
-                if (e.type === 'touchstart') { 
-                    isDragging = true; 
-                    startX = touch.clientX - panX; 
-                    startY = touch.clientY - panY; 
-                }
-                else if (e.type === 'touchmove' && isDragging) { 
-                    panX = touch.clientX - startX; 
-                    panY = touch.clientY - startY; 
-                    updateView(); 
-                }
+                if (e.type === 'touchstart') { isDragging = true; startX = touch.clientX - panX; startY = touch.clientY - panY; }
+                else if (e.type === 'touchmove' && isDragging) { panX = touch.clientX - startX; panY = touch.clientY - startY; updateView(); }
             } else {
-                if (e.type === 'touchstart') { 
-                    saveState(); // Save for undo
-                    ctx.beginPath(); 
-                    ctx.moveTo(x, y); 
-                }
+                if (e.type === 'touchstart') { saveState(); ctx.beginPath(); ctx.moveTo(x, y); }
                 else if (e.type === 'touchmove') {
                     ctx.globalCompositeOperation = (currentTool === 'erase') ? 'destination-out' : 'source-over';
                     ctx.lineTo(x, y);
                     ctx.strokeStyle = document.getElementById('penColor').value;
-                    
-                    // Apply brush size
                     const baseSize = brushSizes[currentBrushSize];
                     ctx.lineWidth = (side / 1000) * (currentTool === 'erase' ? baseSize * 2 : baseSize);
-                    ctx.lineCap = "round"; 
-                    ctx.lineJoin = "round";
-                    ctx.stroke();
+                    ctx.lineCap = "round"; ctx.lineJoin = "round"; ctx.stroke();
                 }
             }
         };
 
         canvas.addEventListener('touchstart', handleTouch);
-        canvas.addEventListener('touchmove', (e) => { 
-            e.preventDefault(); 
-            handleTouch(e); 
-        }, { passive: false });
+        canvas.addEventListener('touchmove', (e) => { e.preventDefault(); handleTouch(e); }, { passive: false });
         window.addEventListener('touchend', () => isDragging = false);
 
-        // Undo/Redo functionality
         function saveState() {
             if (!side) return;
-            
-            // Save current canvas state
-            const imageData = ctx.getImageData(0, 0, side, side);
-            undoStack.push(imageData);
-            
-            // Limit stack size
-            if (undoStack.length > MAX_UNDO_STEPS) {
-                undoStack.shift();
-            }
-            
-            // Clear redo stack when new action is performed
+            undoStack.push(ctx.getImageData(0, 0, side, side));
+            if (undoStack.length > MAX_UNDO_STEPS) undoStack.shift();
             redoStack = [];
         }
 
         function undo() {
-            if (undoStack.length === 0) {
-                alert('Nothing to undo');
-                return;
-            }
-            
-            // Save current state to redo stack
-            const currentState = ctx.getImageData(0, 0, side, side);
-            redoStack.push(currentState);
-            
-            // Restore previous state
-            const previousState = undoStack.pop();
-            ctx.putImageData(previousState, 0, 0);
+            if (undoStack.length === 0) return;
+            redoStack.push(ctx.getImageData(0, 0, side, side));
+            ctx.putImageData(undoStack.pop(), 0, 0);
         }
 
         function redo() {
-            if (redoStack.length === 0) {
-                alert('Nothing to redo');
-                return;
-            }
-            
-            // Save current state to undo stack
-            const currentState = ctx.getImageData(0, 0, side, side);
-            undoStack.push(currentState);
-            
-            // Restore redo state
-            const redoState = redoStack.pop();
-            ctx.putImageData(redoState, 0, 0);
+            if (redoStack.length === 0) return;
+            undoStack.push(ctx.getImageData(0, 0, side, side));
+            ctx.putImageData(redoStack.pop(), 0, 0);
         }
 
-        // Save drawing
         function saveDrawing() {
-            if (!side) {
-                alert('Please load an image first');
-                return;
-            }
-            
-            // Create a temporary canvas to combine image and drawing
+            if (!side) return;
             const tempCanvas = document.createElement('canvas');
-            tempCanvas.width = side;
-            tempCanvas.height = side;
+            tempCanvas.width = side; tempCanvas.height = side;
             const tempCtx = tempCanvas.getContext('2d');
-            
-            // Draw the background image
             tempCtx.drawImage(img, 0, 0, side, side);
-            
-            // Draw the overlay
             tempCtx.drawImage(canvas, 0, 0);
-            
-            // Download
             const link = document.createElement('a');
             link.download = 'DrawSta-' + new Date().getTime() + '.png';
             link.href = tempCanvas.toDataURL();
             link.click();
         }
 
-        // Position indicator
         function updatePositionIndicator(section) {
             posIndicator.textContent = `Section ${section}/9`;
             posIndicator.style.display = 'block';
-            setTimeout(() => {
-                posIndicator.style.display = 'none';
-            }, 2000);
+            setTimeout(() => { posIndicator.style.display = 'none'; }, 2000);
         }
 
-        // Reset view
         function resetView() { 
-            qX = 0; 
-            qY = 0; 
-            panX = 0; 
-            panY = 0; 
-            zSlider.value = 1.0; 
+            qX = 0; qY = 0; panX = 0; panY = 0; 
+            zSlider.value = minZoom.toFixed(2);
             currentGridSection = -1;
             document.querySelectorAll('.grid-btn').forEach(b => b.classList.remove('active'));
             updateView(); 
         }
 
-        // Clear drawing
         function clearDraw() { 
-            if (confirm("Clear all highlights? This cannot be undone.")) {
-                saveState(); // Save for undo
-                ctx.clearRect(0, 0, side, side); 
-            }
+            if (confirm("Clear all highlights?")) { saveState(); ctx.clearRect(0, 0, side, side); }
         }
 
-        // Menu toggle
         function toggleMenu(v) { 
             ui.style.display = v ? 'flex' : 'none'; 
             showBtn.style.display = v ? 'none' : 'block'; 
         }
 
-        // Lock app for distraction-free drawing
         async function lockApp() {
-            toggleMenu(false); 
-            shield.style.display = 'block'; 
-            unlockBtn.style.display = 'flex';
-            
-            // Request wake lock to prevent screen from sleeping
-            try {
-                if ('wakeLock' in navigator) {
-                    wakeLock = await navigator.wakeLock.request('screen');
-                }
-            } catch (err) {
-                console.log('Wake lock error:', err);
-            }
+            toggleMenu(false); shield.style.display = 'block'; unlockBtn.style.display = 'flex';
+            try { if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen'); } catch (err) {}
         }
 
-        // Unlock app
         function unlockApp() {
-            toggleMenu(true); 
-            shield.style.display = 'none'; 
-            unlockBtn.style.display = 'none';
-            
-            // Release wake lock
-            if (wakeLock) { 
-                wakeLock.release(); 
-                wakeLock = null; 
-            }
+            toggleMenu(true); shield.style.display = 'none'; unlockBtn.style.display = 'none';
+            if (wakeLock) { wakeLock.release(); wakeLock = null; }
         }
-
-        // Keyboard shortcuts (for desktop testing)
-        document.addEventListener('keydown', (e) => {
-            if (e.ctrlKey || e.metaKey) {
-                if (e.key === 'z') {
-                    e.preventDefault();
-                    if (e.shiftKey) {
-                        redo();
-                    } else {
-                        undo();
-                    }
-                } else if (e.key === 's') {
-                    e.preventDefault();
-                    saveDrawing();
-                }
-            }
-        });
     </script>
 </body>
 </html>
