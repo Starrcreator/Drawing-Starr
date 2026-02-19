@@ -1,32 +1,22 @@
 {
   "name": "Drawing Starr",
   "short_name": "DrawSta",
-  "description": "Unleash your creativity with Drawing Starr, the ultimate digital lightbox. Turn your device into a powerful tracing tool with precision locking, image filters, and smart zoom features to perfect your sketches and illustrations.",
+  "description": "The ultimate digital lightbox for physical tracing. Lock your screen and trace with precision.",
   "start_url": "index.html",
   "display": "standalone",
-  "background_color": "#c73333",
-  "theme_color": "#3a8d43",
+  "background_color": "#000000",
+  "theme_color": "#007AFF",
   "icons": [
     {
       "src": "icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "maskable"
+      "purpose": "any maskable"
     }
   ],
-  "id": "Firstapp",
-  "lang": "en",
   "categories": [
-    "education",
-    "entertainment",
-    "kids",
     "productivity",
-    "utilities"
+    "utilities",
+    "education"
   ]
 }
