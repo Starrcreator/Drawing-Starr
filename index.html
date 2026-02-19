@@ -7,368 +7,87 @@
     <style>
         * { box-sizing: border-box; }
         body { 
-            margin: 0; 
-            background: #000; 
-            overflow: hidden; 
+            margin: 0; background: #000; overflow: hidden; 
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; 
-            height: 100vh; 
-            width: 100vw; 
-            touch-action: none; 
+            height: 100vh; width: 100vw; touch-action: none; 
         }
         
         #ui-panel { 
-            position: absolute; 
-            top: 0; 
-            left: 0; 
-            z-index: 100; 
-            background: rgba(20, 20, 20, 0.98); 
-            width: 160px; 
-            height: 100vh;
-            padding: 12px; 
-            border-right: 2px solid #444; 
-            color: white;
-            display: flex; 
-            flex-direction: column; 
-            gap: 10px;
-            overflow-y: auto;
-            overflow-x: hidden;
+            position: absolute; top: 0; left: 0; z-index: 100; 
+            background: rgba(20, 20, 20, 0.98); width: 160px; height: 100vh;
+            padding: 12px; border-right: 2px solid #444; color: white;
+            display: flex; flex-direction: column; gap: 8px;
+            overflow-y: auto; overflow-x: hidden;
         }
 
         #show-menu-btn {
-            position: absolute; 
-            top: 10px; 
-            left: 10px; 
-            z-index: 101;
-            background: #007AFF; 
-            color: white; 
-            border: none; 
-            padding: 10px 14px;
-            border-radius: 8px; 
-            font-size: 11px; 
-            font-weight: 600;
-            display: none;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            position: absolute; top: 10px; left: 10px; z-index: 101;
+            background: #007AFF; color: white; border: none; padding: 10px 14px;
+            border-radius: 8px; font-size: 11px; font-weight: 600; display: none;
         }
 
         .section-title {
-            font-size: 9px;
-            color: #007AFF;
-            font-weight: 700;
-            text-transform: uppercase;
-            margin-top: 8px;
-            margin-bottom: 2px;
-            letter-spacing: 0.5px;
+            font-size: 9px; color: #007AFF; font-weight: 700;
+            text-transform: uppercase; margin-top: 6px; letter-spacing: 0.5px;
         }
 
         .upload-lbl {
-            display: block; 
-            padding: 10px; 
-            background: #1a1a1a; 
-            border: 2px dashed #007AFF;
-            border-radius: 6px; 
-            color: #007AFF; 
-            text-align: center; 
-            font-size: 10px; 
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
+            display: block; padding: 10px; background: #1a1a1a; border: 2px dashed #007AFF;
+            border-radius: 6px; color: #007AFF; text-align: center; font-size: 10px; font-weight: 600;
         }
-        .upload-lbl:active { background: #007AFF; color: white; }
 
-        .grid-container {
-            display: grid; 
-            grid-template-columns: repeat(3, 1fr); 
-            gap: 5px;
-            margin-bottom: 5px;
+        /* NEW D-PAD STYLING */
+        .dpad-container {
+            display: grid; grid-template-areas: ". up ." "left . right" ". down .";
+            gap: 4px; width: 100%; aspect-ratio: 1/1; margin-bottom: 5px;
         }
-        .grid-btn { 
-            background: #2a2a2a; 
-            border: 2px solid #444; 
-            height: 35px; 
-            border-radius: 4px; 
-            cursor: pointer;
-            transition: all 0.2s;
-            position: relative;
-            font-size: 9px;
-            color: #666;
+        .nav-btn {
+            background: #2a2a2a; border: 2px solid #444; color: white;
+            border-radius: 6px; font-size: 18px; cursor: pointer; display: flex;
+            align-items: center; justify-content: center; height: 40px;
         }
-        .grid-btn:active { transform: scale(0.95); }
-        .grid-btn.active { 
-            background: #007AFF; 
-            border-color: #fff; 
-            box-shadow: 0 0 10px rgba(0, 122, 255, 0.5);
-        }
-        .grid-btn::after {
-            content: attr(data-label);
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-        }
+        .nav-btn:active { background: #007AFF; border-color: #fff; }
 
         #stage { 
-            position: relative; 
-            width: 100vw; 
-            height: 100vh; 
-            overflow: hidden; 
-            background: #000; 
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            position: relative; width: 100vw; height: 100vh; overflow: hidden; 
+            background: #000; display: flex; align-items: center; justify-content: center;
         }
-        #square-box { 
-            position: absolute; 
-            transform-origin: center center; 
-        }
-        #display-image { 
-            width: 100%; 
-            height: 100%; 
-            object-fit: contain; 
-            pointer-events: none; 
-        }
-        #draw-canvas { 
-            position: absolute; 
-            top: 0; 
-            left: 0; 
-            width: 100%; 
-            height: 100%; 
-            z-index: 5; 
-            touch-action: none; 
-        }
-        #grid-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 10;
-        }
+        #square-box { position: absolute; transform-origin: center center; }
+        #display-image { width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
+        #draw-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 5; touch-action: none; }
 
-        .tool-row { 
-            display: flex; 
-            gap: 5px; 
-        }
+        .tool-row { display: flex; gap: 5px; }
         .tool-btn { 
-            flex: 1; 
-            padding: 12px 8px; 
-            border-radius: 6px; 
-            background: #2a2a2a; 
-            border: 2px solid #444; 
-            color: white; 
-            font-size: 18px;
-            cursor: pointer;
-            transition: all 0.2s;
+            flex: 1; padding: 10px 5px; border-radius: 6px; background: #2a2a2a; 
+            border: 2px solid #444; color: white; font-size: 16px;
         }
-        .tool-btn:active { transform: scale(0.95); }
-        .tool-btn.active { 
-            background: #007AFF; 
-            border-color: #007AFF;
-            box-shadow: 0 0 10px rgba(0, 122, 255, 0.5);
-        }
+        .tool-btn.active { background: #007AFF; border-color: #007AFF; }
         
-        .slider-container {
-            margin: 5px 0;
-        }
-        .slider-label { 
-            font-size: 8px; 
-            color: #888; 
-            text-transform: uppercase; 
-            margin-bottom: 3px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .slider-value {
-            color: #007AFF;
-            font-weight: 600;
-        }
-        input[type="range"] { 
-            width: 100%; 
-            margin: 0;
-            height: 6px;
-            -webkit-appearance: none;
-            appearance: none;
-            background: #444;
-            border-radius: 3px;
-            outline: none;
-        }
-        input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 16px;
-            height: 16px;
-            background: #007AFF;
-            border-radius: 50%;
-            cursor: pointer;
-        }
-        input[type="range"]::-moz-range-thumb {
-            width: 16px;
-            height: 16px;
-            background: #007AFF;
-            border-radius: 50%;
-            cursor: pointer;
-            border: none;
-        }
+        .slider-container { margin: 4px 0; }
+        .slider-label { font-size: 8px; color: #888; display: flex; justify-content: space-between; }
+        .slider-value { color: #007AFF; font-weight: 600; }
+        input[type="range"] { width: 100%; height: 6px; -webkit-appearance: none; background: #444; border-radius: 3px; outline: none; }
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; background: #007AFF; border-radius: 50%; }
         
-        .checkbox-group {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            margin: 5px 0;
-        }
-        .checkbox-label {
-            color: white;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 10px;
-            font-weight: 500;
-            cursor: pointer;
-        }
-        .checkbox-label input[type="checkbox"] {
-            width: 16px;
-            height: 16px;
-            cursor: pointer;
-        }
+        .checkbox-group { display: flex; flex-direction: column; gap: 4px; margin: 4px 0; }
+        .checkbox-label { color: white; display: flex; align-items: center; gap: 8px; font-size: 10px; }
 
-        .brush-size-group {
-            display: flex;
-            gap: 4px;
-            margin: 5px 0;
-        }
-        .brush-btn {
-            flex: 1;
-            padding: 8px 4px;
-            background: #2a2a2a;
-            border: 2px solid #444;
-            border-radius: 4px;
-            color: white;
-            font-size: 9px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .brush-btn:active { transform: scale(0.95); }
-        .brush-btn.active {
-            background: #007AFF;
-            border-color: #007AFF;
-        }
+        .brush-size-group { display: flex; gap: 4px; }
+        .brush-btn { flex: 1; padding: 6px 2px; background: #2a2a2a; border: 2px solid #444; border-radius: 4px; color: white; font-size: 9px; }
+        .brush-btn.active { background: #007AFF; }
 
-        input[type="color"] {
-            width: 100%;
-            height: 35px;
-            border: 2px solid #444;
-            background: none;
-            border-radius: 6px;
-            cursor: pointer;
-            margin: 5px 0;
-        }
+        input[type="color"] { width: 100%; height: 30px; border: 2px solid #444; background: none; border-radius: 6px; }
 
-        .action-btn { 
-            background: #007AFF; 
-            color: white; 
-            padding: 14px; 
-            border-radius: 8px; 
-            font-weight: 700; 
-            font-size: 11px; 
-            border: none; 
-            cursor: pointer;
-            transition: all 0.2s;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        .action-btn:active { transform: scale(0.98); opacity: 0.8; }
-        
-        .secondary-btn {
-            background: transparent;
-            color: #007AFF;
-            padding: 10px;
-            font-size: 10px;
-            border: 2px solid #007AFF;
-            border-radius: 6px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .secondary-btn:active { background: rgba(0, 122, 255, 0.1); }
-        
-        .danger-btn {
-            background: transparent;
-            color: #ff453a;
-            padding: 10px;
-            font-size: 9px;
-            border: 2px solid #ff453a;
-            border-radius: 6px;
-            font-weight: 600;
-            margin-top: 5px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .danger-btn:active { background: rgba(255, 69, 58, 0.1); }
+        .action-btn { background: #007AFF; color: white; padding: 12px; border-radius: 8px; font-weight: 700; font-size: 10px; border: none; text-transform: uppercase; }
+        .secondary-btn { background: transparent; color: #007AFF; padding: 8px; font-size: 9px; border: 2px solid #007AFF; border-radius: 6px; }
+        .danger-btn { background: transparent; color: #ff453a; padding: 8px; font-size: 9px; border: 2px solid #ff453a; border-radius: 6px; }
 
-        .button-group {
-            display: flex;
-            gap: 5px;
-            margin: 5px 0;
-        }
-        .button-group button {
-            flex: 1;
-        }
-        
         #unlock-btn {
-            position: fixed; 
-            top: 15px; 
-            right: 15px; 
-            z-index: 200; 
-            width: 60px; 
-            height: 60px;
-            background: rgba(0, 122, 255, 0.9); 
-            border: 3px solid #fff; 
-            border-radius: 50%;
-            color: white; 
-            font-size: 8px; 
-            font-weight: 700;
-            display: none; 
-            align-items: center; 
-            justify-content: center; 
-            text-align: center;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-            cursor: pointer;
+            position: fixed; top: 15px; right: 15px; z-index: 200; width: 60px; height: 60px;
+            background: rgba(0, 122, 255, 0.9); border: 3px solid #fff; border-radius: 50%;
+            color: white; font-size: 8px; font-weight: 700; display: none; align-items: center; justify-content: center; text-align: center;
         }
-        #lock-shield { 
-            position: fixed; 
-            top: 0; 
-            left: 0; 
-            width: 100%; 
-            height: 100%; 
-            z-index: 150; 
-            display: none; 
-        }
-
-        .version-info {
-            font-size: 7px;
-            color: #555;
-            text-align: center;
-            margin-top: auto;
-            padding-top: 10px;
-            border-top: 1px solid #333;
-        }
-
-        #position-indicator {
-            position: fixed;
-            bottom: 15px;
-            right: 15px;
-            background: rgba(0, 122, 255, 0.9);
-            color: white;
-            padding: 8px 12px;
-            border-radius: 6px;
-            font-size: 10px;
-            font-weight: 600;
-            z-index: 90;
-            display: none;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-        }
+        #lock-shield { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 150; display: none; }
     </style>
 </head>
 <body>
@@ -376,112 +95,74 @@
     <button id="show-menu-btn" onclick="toggleMenu(true)">☰ MENU</button>
 
     <div id="ui-panel">
-        <div style="text-align: center; margin-bottom: 10px;">
+        <div style="text-align: center;">
             <div style="font-size: 16px; font-weight: 700; color: #007AFF;">DrawSta</div>
-            <div style="font-size: 8px; color: #666;">Drawing Starr Precision</div>
         </div>
 
-        <div class="section-title">1. Load Image</div>
-        <label for="upload" class="upload-lbl">📸 SELECT PHOTO</label>
+        <div class="section-title">1. Load</div>
+        <label for="upload" class="upload-lbl">📸 SELECT</label>
         <input type="file" id="upload" accept="image/*" style="display:none">
         
-        <div class="section-title">2. Grid Navigation</div>
-        <div class="grid-container">
-            <button class="grid-btn" data-label="1" onclick="goToQuad(0,0,0)"></button>
-            <button class="grid-btn" data-label="2" onclick="goToQuad(1,0,1)"></button>
-            <button class="grid-btn" data-label="3" onclick="goToQuad(2,0,2)"></button>
-            <button class="grid-btn" data-label="4" onclick="goToQuad(0,1,3)"></button>
-            <button class="grid-btn" data-label="5" onclick="goToQuad(1,1,4)"></button>
-            <button class="grid-btn" data-label="6" onclick="goToQuad(2,1,5)"></button>
-            <button class="grid-btn" data-label="7" onclick="goToQuad(0,2,6)"></button>
-            <button class="grid-btn" data-label="8" onclick="goToQuad(1,2,7)"></button>
-            <button class="grid-btn" data-label="9" onclick="goToQuad(2,2,8)"></button>
+        <div class="section-title">2. Navigation</div>
+        <div class="dpad-container">
+            <button class="nav-btn" style="grid-area: up" onclick="moveView('up')">▲</button>
+            <button class="nav-btn" style="grid-area: left" onclick="moveView('left')">◀</button>
+            <button class="nav-btn" style="grid-area: right" onclick="moveView('right')">▶</button>
+            <button class="nav-btn" style="grid-area: down" onclick="moveView('down')">▼</button>
         </div>
-        <button class="secondary-btn" onclick="resetView()">↺ RESET VIEW</button>
+        <button class="secondary-btn" onclick="resetView()">↺ RE-CENTER</button>
 
         <div class="section-title">3. Tools</div>
         <div class="tool-row">
-            <button id="btn-move" class="tool-btn active" onclick="setTool('move')" title="Move">🤚</button>
-            <button id="btn-draw" class="tool-btn" onclick="setTool('draw')" title="Draw">✏️</button>
-            <button id="btn-erase" class="tool-btn" onclick="setTool('erase')" title="Erase">🧼</button>
+            <button id="btn-move" class="tool-btn active" onclick="setTool('move')">🤚</button>
+            <button id="btn-draw" class="tool-btn" onclick="setTool('draw')">✏️</button>
+            <button id="btn-erase" class="tool-btn" onclick="setTool('erase')">🧼</button>
         </div>
 
-        <div class="section-title">Brush Size</div>
         <div class="brush-size-group">
             <button class="brush-btn" onclick="setBrushSize('small')">S</button>
             <button class="brush-btn active" onclick="setBrushSize('medium')">M</button>
             <button class="brush-btn" onclick="setBrushSize('large')">L</button>
-            <button class="brush-btn" onclick="setBrushSize('xlarge')">XL</button>
         </div>
 
-        <div class="section-title">Pen Color</div>
         <input type="color" id="penColor" value="#ff0000">
 
-        <div class="section-title">4. Display Options</div>
+        <div class="section-title">4. Display</div>
         <div class="checkbox-group">
-            <label class="checkbox-label">
-                <input type="checkbox" id="colorToggle" checked onchange="updateView()">
-                <span>Show Color</span>
-            </label>
-            <label class="checkbox-label">
-                <input type="checkbox" id="invToggle" onchange="updateView()">
-                <span>Invert Colors</span>
-            </label>
-            <label class="checkbox-label">
-                <input type="checkbox" id="gridToggle" onchange="toggleGrid()">
-                <span>Show Grid</span>
-            </label>
+            <label class="checkbox-label"><input type="checkbox" id="colorToggle" checked onchange="updateView()"> Color</label>
+            <label class="checkbox-label"><input type="checkbox" id="invToggle" onchange="updateView()"> Invert</label>
         </div>
 
         <div class="slider-container">
-            <div class="slider-label">
-                <span>Zoom</span>
-                <span class="slider-value"><span id="zVal">1.0</span>x</span>
-            </div>
+            <div class="slider-label">Zoom <span class="slider-value"><span id="zVal">1.0</span>x</span></div>
             <input type="range" id="zoomRange" min="0.1" max="10.0" step="0.01" value="1.0" oninput="updateView()">
         </div>
 
         <div class="slider-container">
-            <div class="slider-label">
-                <span>Brightness</span>
-                <span class="slider-value"><span id="brightVal">100</span>%</span>
-            </div>
+            <div class="slider-label">Exposure <span class="slider-value"><span id="brightVal">100</span>%</span></div>
             <input type="range" id="brightnessRange" min="20" max="200" step="5" value="100" oninput="updateView()">
         </div>
 
         <div class="slider-container">
-            <div class="slider-label">
-                <span>Contrast</span>
-                <span class="slider-value"><span id="contrastVal">180</span>%</span>
-            </div>
+            <div class="slider-label">Contrast <span class="slider-value"><span id="contrastVal">180</span>%</span></div>
             <input type="range" id="contrastRange" min="50" max="300" step="10" value="180" oninput="updateView()">
         </div>
 
-        <div class="section-title">5. Actions</div>
-        <div class="button-group">
-            <button class="secondary-btn" onclick="undo()" title="Undo">↶ UNDO</button>
-            <button class="secondary-btn" onclick="redo()" title="Redo">↷ REDO</button>
+        <div class="tool-row" style="margin-top: 5px;">
+            <button class="secondary-btn" onclick="undo()">↶</button>
+            <button class="secondary-btn" onclick="redo()">↷</button>
         </div>
-        
-        <button class="secondary-btn" onclick="saveDrawing()">💾 SAVE DRAWING</button>
-        <button class="danger-btn" onclick="clearDraw()">🗑️ CLEAR ALL</button>
-        
+        <button class="secondary-btn" onclick="saveDrawing()">💾 SAVE</button>
+        <button class="danger-btn" onclick="clearDraw()">🗑️ CLEAR</button>
         <button class="action-btn" onclick="lockApp()">🔒 LOCK & START</button>
-
-        <div class="version-info">
-            DrawSta v2.1<br>
-            Auto-Scale Enabled
-        </div>
     </div>
 
-    <div id="unlock-btn" ondblclick="unlockApp()">DOUBLE<br>TAP<br>UNLOCK</div>
+    <div id="unlock-btn" ondblclick="unlockApp()">DBL TAP<br>UNLOCK</div>
     <div id="lock-shield"></div>
-    <div id="position-indicator"></div>
 
     <div id="stage">
         <div id="square-box">
             <img id="display-image">
-            <canvas id="grid-overlay"></canvas>
             <canvas id="draw-canvas"></canvas>
         </div>
     </div>
@@ -490,29 +171,24 @@
         const img = document.getElementById('display-image');
         const canvas = document.getElementById('draw-canvas');
         const ctx = canvas.getContext('2d');
-        const gridCanvas = document.getElementById('grid-overlay');
-        const gridCtx = gridCanvas.getContext('2d');
         const box = document.getElementById('square-box');
         const ui = document.getElementById('ui-panel');
         const showBtn = document.getElementById('show-menu-btn');
         const shield = document.getElementById('lock-shield');
         const unlockBtn = document.getElementById('unlock-btn');
-        const posIndicator = document.getElementById('position-indicator');
         const zSlider = document.getElementById('zoomRange');
         const brightSlider = document.getElementById('brightnessRange');
         const contrastSlider = document.getElementById('contrastRange');
         
-        let panX = 0, panY = 0, qX = 0, qY = 0, startX = 0, startY = 0;
+        let panX = 0, panY = 0, startX = 0, startY = 0;
         let isDragging = false, currentTool = 'move', wakeLock = null, side = 0;
         let currentBrushSize = 'medium';
-        let currentGridSection = -1;
         let minZoom = 1.0; 
         
         let undoStack = [];
         let redoStack = [];
         const MAX_UNDO_STEPS = 30;
-
-        const brushSizes = { small: 8, medium: 12, large: 20, xlarge: 35 };
+        const brushSizes = { small: 8, medium: 12, large: 20 };
 
         document.getElementById('upload').onchange = (e) => {
             const reader = new FileReader();
@@ -524,24 +200,32 @@
                     box.style.height = side + 'px';
                     canvas.width = side; 
                     canvas.height = side;
-                    gridCanvas.width = side;
-                    gridCanvas.height = side;
-                    
                     ctx.clearRect(0, 0, side, side);
                     undoStack = []; redoStack = [];
                     
-                    // NEW: CALCULATE MIN ZOOM
                     const screenMin = Math.min(window.innerWidth, window.innerHeight);
                     minZoom = screenMin / side;
-                    zSlider.min = (minZoom * 0.8).toFixed(2); // Allow slight extra zoom out
+                    zSlider.min = (minZoom * 0.5).toFixed(2);
                     zSlider.value = minZoom.toFixed(2); 
-                    
                     resetView();
-                    drawGrid();
                 };
             };
             reader.readAsDataURL(e.target.files[0]);
         };
+
+        // NEW NAVIGATION LOGIC: Move by 80% of viewport width/height
+        function moveView(dir) {
+            if (!side) return;
+            const zoom = parseFloat(zSlider.value);
+            const moveAmount = (Math.min(window.innerWidth, window.innerHeight) / zoom) * 0.8;
+
+            if (dir === 'up') panY += moveAmount;
+            if (dir === 'down') panY -= moveAmount;
+            if (dir === 'left') panX += moveAmount;
+            if (dir === 'right') panX -= moveAmount;
+
+            updateView();
+        }
 
         function setTool(t) {
             currentTool = t;
@@ -555,25 +239,6 @@
             event.target.classList.add('active');
         }
 
-        function goToQuad(col, row, idx) {
-            if (!side) return;
-            const section = side / 3;
-            const vw = window.innerWidth;
-            const vh = window.innerHeight;
-            const zoom = parseFloat(zSlider.value);
-            const centerOffsetX = (vw / 2) / zoom;
-            const centerOffsetY = (vh / 2) / zoom;
-            const baseX = col * section;
-            const baseY = row * section;
-            qX = -(baseX + section/2 - centerOffsetX);
-            qY = -(baseY + section/2 - centerOffsetY);
-            panX = 0; panY = 0;
-            currentGridSection = idx;
-            document.querySelectorAll('.grid-btn').forEach((b, i) => b.classList.toggle('active', i === idx));
-            updateView();
-            updatePositionIndicator(idx + 1);
-        }
-
         function updateView() {
             if (!side) return;
             const zoom = parseFloat(zSlider.value);
@@ -582,30 +247,13 @@
             document.getElementById('zVal').innerText = zoom.toFixed(2);
             document.getElementById('brightVal').innerText = brightness;
             document.getElementById('contrastVal').innerText = contrast;
-            const tx = (qX + panX) / zoom;
-            const ty = (qY + panY) / zoom;
-            box.style.transform = `scale(${zoom}) translate(${tx}px, ${ty}px)`;
+            
+            // Central transformation logic
+            box.style.transform = `scale(${zoom}) translate(${panX}px, ${panY}px)`;
+            
             const gray = document.getElementById('colorToggle').checked ? 0 : 100;
             const inv = document.getElementById('invToggle').checked ? 100 : 0;
             img.style.filter = `grayscale(${gray}%) invert(${inv}%) brightness(${brightness}%) contrast(${contrast}%)`;
-        }
-
-        function drawGrid() {
-            if (!side) return;
-            gridCtx.clearRect(0, 0, side, side);
-            gridCtx.strokeStyle = 'rgba(0, 122, 255, 0.5)';
-            gridCtx.lineWidth = side / 500;
-            for (let i = 1; i < 3; i++) {
-                const pos = (side / 3) * i;
-                gridCtx.beginPath(); gridCtx.moveTo(pos, 0); gridCtx.lineTo(pos, side); gridCtx.stroke();
-                gridCtx.beginPath(); gridCtx.moveTo(0, pos); gridCtx.lineTo(side, pos); gridCtx.stroke();
-            }
-        }
-
-        function toggleGrid() {
-            const show = document.getElementById('gridToggle').checked;
-            gridCanvas.style.display = show ? 'block' : 'none';
-            if (show && side) drawGrid();
         }
 
         const handleTouch = (e) => {
@@ -615,17 +263,25 @@
             const scaleFac = side / rect.width;
             const x = (touch.clientX - rect.left) * scaleFac;
             const y = (touch.clientY - rect.top) * scaleFac;
+
             if (currentTool === 'move') {
-                if (e.type === 'touchstart') { isDragging = true; startX = touch.clientX - panX; startY = touch.clientY - panY; }
-                else if (e.type === 'touchmove' && isDragging) { panX = touch.clientX - startX; panY = touch.clientY - startY; updateView(); }
+                if (e.type === 'touchstart') { 
+                    isDragging = true; 
+                    startX = touch.clientX - (panX * parseFloat(zSlider.value)); 
+                    startY = touch.clientY - (panY * parseFloat(zSlider.value)); 
+                }
+                else if (e.type === 'touchmove' && isDragging) { 
+                    panX = (touch.clientX - startX) / parseFloat(zSlider.value); 
+                    panY = (touch.clientY - startY) / parseFloat(zSlider.value); 
+                    updateView(); 
+                }
             } else {
                 if (e.type === 'touchstart') { saveState(); ctx.beginPath(); ctx.moveTo(x, y); }
                 else if (e.type === 'touchmove') {
                     ctx.globalCompositeOperation = (currentTool === 'erase') ? 'destination-out' : 'source-over';
                     ctx.lineTo(x, y);
                     ctx.strokeStyle = document.getElementById('penColor').value;
-                    const baseSize = brushSizes[currentBrushSize];
-                    ctx.lineWidth = (side / 1000) * (currentTool === 'erase' ? baseSize * 2 : baseSize);
+                    ctx.lineWidth = (side / 1000) * brushSizes[currentBrushSize];
                     ctx.lineCap = "round"; ctx.lineJoin = "round"; ctx.stroke();
                 }
             }
@@ -635,60 +291,19 @@
         canvas.addEventListener('touchmove', (e) => { e.preventDefault(); handleTouch(e); }, { passive: false });
         window.addEventListener('touchend', () => isDragging = false);
 
-        function saveState() {
-            if (!side) return;
-            undoStack.push(ctx.getImageData(0, 0, side, side));
-            if (undoStack.length > MAX_UNDO_STEPS) undoStack.shift();
-            redoStack = [];
-        }
-
-        function undo() {
-            if (undoStack.length === 0) return;
-            redoStack.push(ctx.getImageData(0, 0, side, side));
-            ctx.putImageData(undoStack.pop(), 0, 0);
-        }
-
-        function redo() {
-            if (redoStack.length === 0) return;
-            undoStack.push(ctx.getImageData(0, 0, side, side));
-            ctx.putImageData(redoStack.pop(), 0, 0);
-        }
-
+        function resetView() { panX = 0; panY = 0; updateView(); }
+        function saveState() { undoStack.push(ctx.getImageData(0, 0, side, side)); if (undoStack.length > MAX_UNDO_STEPS) undoStack.shift(); redoStack = []; }
+        function undo() { if (undoStack.length > 0) { redoStack.push(ctx.getImageData(0, 0, side, side)); ctx.putImageData(undoStack.pop(), 0, 0); } }
+        function redo() { if (redoStack.length > 0) { undoStack.push(ctx.getImageData(0, 0, side, side)); ctx.putImageData(redoStack.pop(), 0, 0); } }
+        
         function saveDrawing() {
-            if (!side) return;
-            const tempCanvas = document.createElement('canvas');
-            tempCanvas.width = side; tempCanvas.height = side;
-            const tempCtx = tempCanvas.getContext('2d');
-            tempCtx.drawImage(img, 0, 0, side, side);
-            tempCtx.drawImage(canvas, 0, 0);
-            const link = document.createElement('a');
-            link.download = 'DrawSta-' + new Date().getTime() + '.png';
-            link.href = tempCanvas.toDataURL();
-            link.click();
+            const temp = document.createElement('canvas'); temp.width = side; temp.height = side;
+            const tCtx = temp.getContext('2d'); tCtx.drawImage(img, 0, 0, side, side); tCtx.drawImage(canvas, 0, 0);
+            const link = document.createElement('a'); link.download = 'DrawSta.png'; link.href = temp.toDataURL(); link.click();
         }
 
-        function updatePositionIndicator(section) {
-            posIndicator.textContent = `Section ${section}/9`;
-            posIndicator.style.display = 'block';
-            setTimeout(() => { posIndicator.style.display = 'none'; }, 2000);
-        }
-
-        function resetView() { 
-            qX = 0; qY = 0; panX = 0; panY = 0; 
-            zSlider.value = minZoom.toFixed(2);
-            currentGridSection = -1;
-            document.querySelectorAll('.grid-btn').forEach(b => b.classList.remove('active'));
-            updateView(); 
-        }
-
-        function clearDraw() { 
-            if (confirm("Clear all highlights?")) { saveState(); ctx.clearRect(0, 0, side, side); }
-        }
-
-        function toggleMenu(v) { 
-            ui.style.display = v ? 'flex' : 'none'; 
-            showBtn.style.display = v ? 'none' : 'block'; 
-        }
+        function clearDraw() { if (confirm("Clear all?")) { saveState(); ctx.clearRect(0, 0, side, side); } }
+        function toggleMenu(v) { ui.style.display = v ? 'flex' : 'none'; showBtn.style.display = v ? 'none' : 'block'; }
 
         async function lockApp() {
             toggleMenu(false); shield.style.display = 'block'; unlockBtn.style.display = 'flex';
