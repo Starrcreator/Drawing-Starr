@@ -5,19 +5,20 @@
   "id": "com.drawingstarr.app",
   "start_url": "index.html",
   "display": "standalone",
+  "display_override": ["fullscreen", "minimal-ui"],
   "orientation": "any",
   "background_color": "#000000",
   "theme_color": "#007AFF",
   "icons": [
     {
       "src": "icon-512.png",
-      "sizes": "512x512",
+      "sizes": "1024x1024",
       "type": "image/png",
       "purpose": "any"
     },
     {
       "src": "icon-512.png",
-      "sizes": "512x512",
+      "sizes": "1024x1024",
       "type": "image/png",
       "purpose": "maskable"
     }
@@ -28,19 +29,14 @@
       "sizes": "1024x1024",
       "type": "image/png",
       "form_factor": "narrow",
-      "label": "Tracing on an S23 Ultra"
+      "label": "Lock Screen to Trace"
     },
     {
-      "src": "screenshot1.png",
+      "src": "screenshot2.png",
       "sizes": "1024x1024",
       "type": "image/png",
-      "form_factor": "wide",
-      "label": "Desktop/Tablet View"
+      "form_factor": "narrow",
+      "label": "Full Control & Filters"
     }
-  ],
-  "categories": [
-    "productivity",
-    "utilities",
-    "education"
   ]
 }
