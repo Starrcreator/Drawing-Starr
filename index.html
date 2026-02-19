@@ -3,9 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Drawing Starr - Precision Tracing</title>
+    <title>DrawSta - Final Precision</title>
     <style>
-        * { box-sizing: border-box; }
+        /* GLOBAL SELECTION DISABLE */
+        * { 
+            box-sizing: border-box; 
+            -webkit-user-select: none; 
+            user-select: none; 
+            -webkit-touch-callout: none;
+        }
+        
         body { 
             margin: 0; background: #000; overflow: hidden; 
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; 
@@ -26,14 +33,7 @@
             border-radius: 8px; font-size: 11px; font-weight: 600; display: none;
         }
 
-        .section-title { font-size: 9px; color: #007AFF; font-weight: 700; text-transform: uppercase; margin-top: 6px; }
-
-        .upload-lbl {
-            display: block; padding: 10px; background: #1a1a1a; border: 2px dashed #007AFF;
-            border-radius: 6px; color: #007AFF; text-align: center; font-size: 10px; font-weight: 600;
-        }
-
-        /* D-PAD */
+        /* NAVIGATION DPAD */
         .dpad-container {
             display: grid; grid-template-areas: ". up ." "left . right" ". down .";
             gap: 4px; width: 100%; aspect-ratio: 1/1; margin-bottom: 5px;
@@ -53,30 +53,37 @@
         #display-image { width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
         #draw-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 5; touch-action: none; }
 
+        /* LOCK OVERLAY */
+        #lock-shield { 
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; 
+            z-index: 2000; display: none; background: transparent; touch-action: none;
+        }
+        
+        #unlock-btn {
+            position: fixed; top: 20px; right: 20px; z-index: 2001; width: 75px; height: 75px;
+            background: rgba(0, 122, 255, 0.9); border: 3px solid #fff; border-radius: 50%;
+            color: white; font-size: 10px; font-weight: 800; display: none; 
+            align-items: center; justify-content: center; text-align: center;
+            box-shadow: 0 0 20px rgba(0,0,0,0.6);
+            /* CRITICAL FIXES FOR DOUBLE TAP */
+            touch-action: manipulation; 
+            pointer-events: auto;
+        }
+        
+        #unlock-btn span { pointer-events: none; } /* Prevents text selection/interference */
+
+        .section-title { font-size: 9px; color: #007AFF; font-weight: 700; text-transform: uppercase; margin-top: 6px; }
+        .upload-lbl { display: block; padding: 10px; background: #1a1a1a; border: 2px dashed #007AFF; border-radius: 6px; color: #007AFF; text-align: center; font-size: 10px; font-weight: 600; }
         .tool-row { display: flex; gap: 5px; }
         .tool-btn { flex: 1; padding: 10px 5px; border-radius: 6px; background: #2a2a2a; border: 2px solid #444; color: white; font-size: 16px; }
         .tool-btn.active { background: #007AFF; border-color: #007AFF; }
-        
         .slider-container { margin: 4px 0; }
         .slider-label { font-size: 8px; color: #888; display: flex; justify-content: space-between; }
-        .slider-value { color: #007AFF; font-weight: 600; }
-        input[type="range"] { width: 100%; height: 6px; -webkit-appearance: none; background: #444; border-radius: 3px; outline: none; }
+        input[type="range"] { width: 100%; height: 6px; -webkit-appearance: none; background: #444; border-radius: 3px; }
         input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; background: #007AFF; border-radius: 50%; }
-
         .brush-btn { flex: 1; padding: 6px 2px; background: #2a2a2a; border: 2px solid #444; border-radius: 4px; color: white; font-size: 9px; }
         .brush-btn.active { background: #007AFF; }
-        
-        .checkbox-group { display: flex; flex-direction: column; gap: 4px; margin: 4px 0; }
         .checkbox-label { color: white; display: flex; align-items: center; gap: 8px; font-size: 10px; }
-
-        input[type="color"] { width: 100%; height: 30px; border: 2px solid #444; background: none; border-radius: 6px; }
-
-        #unlock-btn {
-            position: fixed; top: 15px; right: 15px; z-index: 200; width: 70px; height: 70px;
-            background: rgba(0, 122, 255, 0.9); border: 3px solid #fff; border-radius: 50%;
-            color: white; font-size: 9px; font-weight: 700; display: none; align-items: center; justify-content: center; text-align: center;
-        }
-        #lock-shield { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 150; display: none; }
     </style>
 </head>
 <body>
@@ -92,12 +99,12 @@
         
         <div class="section-title">2. Navigate</div>
         <div class="dpad-container">
-            <button class="nav-btn" style="grid-area: up" onclick="moveView('up')">▲</button>
-            <button class="nav-btn" style="grid-area: left" onclick="moveView('left')">◀</button>
-            <button class="nav-btn" style="grid-area: right" onclick="moveView('right')">▶</button>
-            <button class="nav-btn" style="grid-area: down" onclick="moveView('down')">▼</button>
+            <button class="nav-btn" onclick="moveView('up')">▲</button>
+            <button class="nav-btn" onclick="moveView('left')">◀</button>
+            <button class="nav-btn" onclick="moveView('right')">▶</button>
+            <button class="nav-btn" onclick="moveView('down')">▼</button>
         </div>
-        <button onclick="resetView()" style="width:100%; padding:8px; background:#2a2a2a; border:1px solid #444; color:#007AFF; border-radius:6px; font-size:10px;">↺ RE-CENTER</button>
+        <button onclick="resetView()" style="width:100%; padding:8px; background:#2a2a2a; color:#007AFF; border:1px solid #444; border-radius:6px; font-size:10px;">↺ RE-CENTER</button>
 
         <div class="section-title">3. Tools</div>
         <div class="tool-row">
@@ -105,34 +112,28 @@
             <button id="btn-draw" class="tool-btn" onclick="setTool('draw')">✏️</button>
             <button id="btn-erase" class="tool-btn" onclick="setTool('erase')">🧼</button>
         </div>
-
         <div class="tool-row">
             <button class="brush-btn" id="b-small" onclick="setBrushSize('small')">S</button>
             <button class="brush-btn active" id="b-med" onclick="setBrushSize('medium')">M</button>
             <button class="brush-btn" id="b-large" onclick="setBrushSize('large')">L</button>
         </div>
-
-        <input type="color" id="penColor" value="#ff0000">
+        <input type="color" id="penColor" value="#ff0000" style="width:100%; height:30px; border-radius:6px; border:none; background:none;">
 
         <div class="section-title">4. Filters</div>
-        <div class="checkbox-group">
-            <label class="checkbox-label"><input type="checkbox" id="colorToggle" checked onchange="updateView()"> Color</label>
-            <label class="checkbox-label"><input type="checkbox" id="invToggle" onchange="updateView()"> Invert</label>
-        </div>
+        <label class="checkbox-label"><input type="checkbox" id="colorToggle" checked onchange="updateView()"> Color</label>
+        <label class="checkbox-label"><input type="checkbox" id="invToggle" onchange="updateView()"> Invert</label>
 
         <div class="slider-container">
-            <div class="slider-label">Zoom <span class="slider-value"><span id="zVal">1.0</span>x</span></div>
+            <div class="slider-label">Zoom <span id="zVal">1.0</span>x</div>
             <input type="range" id="zoomRange" min="0.05" max="10.0" step="0.01" value="1.0" oninput="updateView()">
         </div>
-
         <div class="slider-container">
-            <div class="slider-label">Brightness <span class="slider-value"><span id="brightVal">100</span>%</span></div>
-            <input type="range" id="brightnessRange" min="20" max="250" step="1" value="100" oninput="updateView()">
+            <div class="slider-label">Brightness <span id="brightVal">100</span>%</div>
+            <input type="range" id="brightnessRange" min="20" max="250" value="100" oninput="updateView()">
         </div>
-
         <div class="slider-container">
-            <div class="slider-label">Contrast <span class="slider-value"><span id="contrastVal">100</span>%</span></div>
-            <input type="range" id="contrastRange" min="50" max="300" step="1" value="100" oninput="updateView()">
+            <div class="slider-label">Contrast <span id="contrastVal">100</span>%</div>
+            <input type="range" id="contrastRange" min="50" max="300" value="100" oninput="updateView()">
         </div>
 
         <div class="tool-row">
@@ -141,11 +142,11 @@
         </div>
 
         <button onclick="saveDrawing()" style="width:100%; padding:10px; background:#007AFF; color:white; border:none; border-radius:6px; font-weight:700; margin-top:5px;">💾 SAVE</button>
-        <button onclick="lockApp()" style="width:100%; padding:10px; background:#444; color:white; border:none; border-radius:6px; font-weight:700; margin-top:5px;">🔒 LOCK</button>
+        <button onclick="lockApp()" style="width:100%; padding:12px; background:#f39c12; color:white; border:none; border-radius:6px; font-weight:800; margin-top:5px;">🔒 LOCK SCREEN</button>
     </div>
 
-    <div id="unlock-btn" ondblclick="unlockApp()">DBL TAP<br>UNLOCK</div>
     <div id="lock-shield"></div>
+    <div id="unlock-btn" ondblclick="unlockApp()"><span>DBL TAP<br>UNLOCK</span></div>
 
     <div id="stage">
         <div id="square-box">
@@ -160,19 +161,13 @@
         const ctx = canvas.getContext('2d');
         const box = document.getElementById('square-box');
         const ui = document.getElementById('ui-panel');
-        const showBtn = document.getElementById('show-menu-btn');
         const shield = document.getElementById('lock-shield');
         const unlockBtn = document.getElementById('unlock-btn');
         const zSlider = document.getElementById('zoomRange');
-        const bSlider = document.getElementById('brightnessRange');
-        const cSlider = document.getElementById('contrastRange');
         
-        let panX = 0, panY = 0, side = 0;
-        let startX, startY, isDragging = false, currentTool = 'move';
-        let initialPinchDist = null, initialZoom = 1;
-        let wakeLock = null;
-        let undoStack = [];
-        let redoStack = [];
+        let panX = 0, panY = 0, side = 0, isDragging = false, currentTool = 'move';
+        let initialPinchDist = null, initialZoom = 1, startX, startY, wakeLock = null;
+        let undoStack = [], redoStack = [];
         const brushSizes = { small: 6, medium: 12, large: 24 };
         let currentBrushSize = 'medium';
 
@@ -182,8 +177,7 @@
                 img.src = f.target.result; 
                 img.onload = () => {
                     side = Math.max(img.naturalWidth, img.naturalHeight);
-                    box.style.width = side + 'px'; 
-                    box.style.height = side + 'px';
+                    box.style.width = side + 'px'; box.style.height = side + 'px';
                     canvas.width = side; canvas.height = side;
                     resetView();
                 };
@@ -194,75 +188,47 @@
         function moveView(dir) {
             const zoom = parseFloat(zSlider.value);
             const moveAmt = (Math.min(window.innerWidth, window.innerHeight) / zoom) * 0.8;
-            if (dir === 'up') panY += moveAmt;
-            if (dir === 'down') panY -= moveAmt;
-            if (dir === 'left') panX += moveAmt;
-            if (dir === 'right') panX -= moveAmt;
+            if (dir === 'up') panY += moveAmt; if (dir === 'down') panY -= moveAmt;
+            if (dir === 'left') panX += moveAmt; if (dir === 'right') panX -= moveAmt;
             updateView();
         }
 
         function updateView() {
             const zoom = parseFloat(zSlider.value);
-            const brightness = bSlider.value;
-            const contrast = cSlider.value;
-            
+            const bri = document.getElementById('brightnessRange').value;
+            const con = document.getElementById('contrastRange').value;
             document.getElementById('zVal').innerText = zoom.toFixed(2);
-            document.getElementById('brightVal').innerText = brightness;
-            document.getElementById('contrastVal').innerText = contrast;
-            
+            document.getElementById('brightVal').innerText = bri;
+            document.getElementById('contrastVal').innerText = con;
             box.style.transform = `scale(${zoom}) translate(${panX}px, ${panY}px)`;
-            
             const gray = document.getElementById('colorToggle').checked ? 0 : 100;
             const inv = document.getElementById('invToggle').checked ? 100 : 0;
-            img.style.filter = `grayscale(${gray}%) invert(${inv}%) brightness(${brightness}%) contrast(${contrast}%)`;
+            img.style.filter = `grayscale(${gray}%) invert(${inv}%) brightness(${bri}%) contrast(${con}%)`;
         }
 
         const handleTouch = (e) => {
-            if (shield.style.display === 'block') return;
-            
+            if (shield.style.display === 'block') return; 
             if (e.touches.length === 2) {
                 const dist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
-                if (initialPinchDist === null) {
-                    initialPinchDist = dist;
-                    initialZoom = parseFloat(zSlider.value);
-                } else {
-                    const factor = dist / initialPinchDist;
-                    zSlider.value = (initialZoom * factor).toFixed(2);
-                    updateView();
-                }
+                if (initialPinchDist === null) { initialPinchDist = dist; initialZoom = parseFloat(zSlider.value); }
+                else { zSlider.value = (initialZoom * (dist / initialPinchDist)).toFixed(2); updateView(); }
                 return;
             }
-
             const touch = e.touches[0];
             const rect = canvas.getBoundingClientRect();
             const scaleFac = side / rect.width;
             const x = (touch.clientX - rect.left) * scaleFac;
             const y = (touch.clientY - rect.top) * scaleFac;
-
             if (currentTool === 'move') {
-                if (e.type === 'touchstart') { 
-                    isDragging = true; 
-                    startX = touch.clientX - (panX * parseFloat(zSlider.value)); 
-                    startY = touch.clientY - (panY * parseFloat(zSlider.value)); 
-                }
-                else if (e.type === 'touchmove' && isDragging) { 
-                    panX = (touch.clientX - startX) / parseFloat(zSlider.value); 
-                    panY = (touch.clientY - startY) / parseFloat(zSlider.value); 
-                    updateView(); 
-                }
+                if (e.type === 'touchstart') { isDragging = true; startX = touch.clientX - (panX * parseFloat(zSlider.value)); startY = touch.clientY - (panY * parseFloat(zSlider.value)); }
+                else if (e.type === 'touchmove' && isDragging) { panX = (touch.clientX - startX) / parseFloat(zSlider.value); panY = (touch.clientY - startY) / parseFloat(zSlider.value); updateView(); }
             } else {
-                if (e.type === 'touchstart') { 
-                    saveState(); 
-                    ctx.beginPath(); 
-                    ctx.moveTo(x, y); 
-                }
+                if (e.type === 'touchstart') { saveState(); ctx.beginPath(); ctx.moveTo(x, y); }
                 else if (e.type === 'touchmove') {
                     ctx.globalCompositeOperation = (currentTool === 'erase') ? 'destination-out' : 'source-over';
-                    ctx.lineTo(x, y);
-                    ctx.strokeStyle = document.getElementById('penColor').value;
+                    ctx.lineTo(x, y); ctx.strokeStyle = document.getElementById('penColor').value;
                     ctx.lineWidth = (side / 1000) * brushSizes[currentBrushSize];
-                    ctx.lineCap = "round"; 
-                    ctx.stroke();
+                    ctx.lineCap = "round"; ctx.stroke();
                 }
             }
         };
@@ -271,51 +237,28 @@
         canvas.addEventListener('touchmove', (e) => { e.preventDefault(); handleTouch(e); }, { passive: false });
         window.addEventListener('touchend', () => { isDragging = false; initialPinchDist = null; });
 
-        function setTool(t) { 
-            currentTool = t; 
-            document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById('btn-'+t).classList.add('active');
-        }
-
-        function setBrushSize(s) {
-            currentBrushSize = s;
-            document.querySelectorAll('.brush-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById('b-' + (s === 'medium' ? 'med' : s)).classList.add('active');
-        }
-
         async function lockApp() {
-            toggleMenu(false); shield.style.display = 'block'; unlockBtn.style.display = 'flex';
+            ui.style.display = 'none'; 
+            document.getElementById('show-menu-btn').style.display = 'none';
+            shield.style.display = 'block'; 
+            unlockBtn.style.display = 'flex';
             try { if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen'); } catch (err) {}
         }
 
         function unlockApp() {
-            toggleMenu(true); shield.style.display = 'none'; unlockBtn.style.display = 'none';
+            ui.style.display = 'flex'; 
+            shield.style.display = 'none'; 
+            unlockBtn.style.display = 'none';
             if (wakeLock) { wakeLock.release(); wakeLock = null; }
         }
 
-        function toggleMenu(v) { ui.style.display = v ? 'flex' : 'none'; showBtn.style.display = v ? 'none' : 'block'; }
+        function setTool(t) { currentTool = t; document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active')); document.getElementById('btn-'+t).classList.add('active'); }
+        function setBrushSize(s) { currentBrushSize = s; document.querySelectorAll('.brush-btn').forEach(b => b.classList.remove('active')); document.getElementById('b-' + (s === 'medium' ? 'med' : s)).classList.add('active'); }
+        function toggleMenu(v) { ui.style.display = v ? 'flex' : 'none'; document.getElementById('show-menu-btn').style.display = v ? 'none' : 'block'; }
         function resetView() { panX = 0; panY = 0; zSlider.value = 1.0; updateView(); }
-        
-        function saveState() { 
-            undoStack.push(ctx.getImageData(0, 0, side, side)); 
-            if (undoStack.length > 30) undoStack.shift(); 
-            redoStack = []; 
-        }
-        
-        function undo() { 
-            if (undoStack.length > 0) {
-                redoStack.push(ctx.getImageData(0, 0, side, side));
-                ctx.putImageData(undoStack.pop(), 0, 0); 
-            }
-        }
-
-        function redo() {
-            if (redoStack.length > 0) {
-                undoStack.push(ctx.getImageData(0, 0, side, side));
-                ctx.putImageData(redoStack.pop(), 0, 0);
-            }
-        }
-
+        function saveState() { undoStack.push(ctx.getImageData(0, 0, side, side)); if (undoStack.length > 30) undoStack.shift(); redoStack = []; }
+        function undo() { if (undoStack.length > 0) { redoStack.push(ctx.getImageData(0, 0, side, side)); ctx.putImageData(undoStack.pop(), 0, 0); } }
+        function redo() { if (redoStack.length > 0) { undoStack.push(ctx.getImageData(0, 0, side, side)); ctx.putImageData(redoStack.pop(), 0, 0); } }
         function saveDrawing() {
             const temp = document.createElement('canvas'); temp.width = side; temp.height = side;
             const tCtx = temp.getContext('2d'); tCtx.drawImage(img, 0, 0, side, side); tCtx.drawImage(canvas, 0, 0);
