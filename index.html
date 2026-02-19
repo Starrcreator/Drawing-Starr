@@ -2,7 +2,11 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#007AFF">
     <title>DrawSta - Pro Tracing</title>
@@ -72,7 +76,6 @@
             align-items: center; justify-content: center; text-align: center;
             box-shadow: 0 0 20px rgba(0,0,0,0.7); touch-action: manipulation;
         }
-        #unlock-btn span { pointer-events: none; }
 
         .section-title { font-size: 10px; color: #007AFF; font-weight: 800; text-transform: uppercase; border-bottom: 1px solid #333; padding-bottom: 2px; }
         .upload-lbl { display: block; padding: 12px; background: #1a1a1a; border: 2px dashed #007AFF; border-radius: 6px; color: #007AFF; text-align: center; font-size: 11px; font-weight: 700; }
@@ -92,7 +95,6 @@
             border-radius: 10px; font-weight: 800; font-size: 14px; margin-top: 10px;
             box-shadow: 0 4px 0 #d35400;
         }
-        .lock-trigger-btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #d35400; }
     </style>
 </head>
 <body>
@@ -147,12 +149,6 @@
             <input type="range" id="contrastRange" min="50" max="300" value="100" oninput="updateView()">
         </div>
 
-        <div class="section-title">5. Actions</div>
-        <div class="tool-row">
-            <button onclick="undo()" style="flex:1; padding:12px; background:#333; color:white; border:1px solid #555; border-radius:8px;">↶</button>
-            <button onclick="redo()" style="flex:1; padding:12px; background:#333; color:white; border:1px solid #555; border-radius:8px;">↷</button>
-        </div>
-
         <button class="lock-trigger-btn" onclick="lockApp()">🔒 LOCK SCREEN</button>
     </div>
 
@@ -178,7 +174,6 @@
         
         let panX = 0, panY = 0, side = 0, isDragging = false, currentTool = 'move';
         let initialPinchDist = null, initialZoom = 1, startX, startY, wakeLock = null;
-        let undoStack = [], redoStack = [];
         const brushSizes = { small: 6, medium: 12, large: 24 };
         let currentBrushSize = 'medium';
 
@@ -195,14 +190,6 @@
             };
             reader.readAsDataURL(e.target.files[0]);
         };
-
-        function moveView(dir) {
-            const zoom = parseFloat(zSlider.value);
-            const moveAmt = (Math.min(window.innerWidth, window.innerHeight) / zoom) * 0.8;
-            if (dir === 'up') panY += moveAmt; if (dir === 'down') panY -= moveAmt;
-            if (dir === 'left') panX += moveAmt; if (dir === 'right') panX -= moveAmt;
-            updateView();
-        }
 
         function updateView() {
             const zoom = parseFloat(zSlider.value);
@@ -234,7 +221,7 @@
                 if (e.type === 'touchstart') { isDragging = true; startX = touch.clientX - (panX * parseFloat(zSlider.value)); startY = touch.clientY - (panY * parseFloat(zSlider.value)); }
                 else if (e.type === 'touchmove' && isDragging) { panX = (touch.clientX - startX) / parseFloat(zSlider.value); panY = (touch.clientY - startY) / parseFloat(zSlider.value); updateView(); }
             } else {
-                if (e.type === 'touchstart') { saveState(); ctx.beginPath(); ctx.moveTo(x, y); }
+                if (e.type === 'touchstart') { ctx.beginPath(); ctx.moveTo(x, y); }
                 else if (e.type === 'touchmove') {
                     ctx.globalCompositeOperation = (currentTool === 'erase') ? 'destination-out' : 'source-over';
                     ctx.lineTo(x, y); ctx.strokeStyle = document.getElementById('penColor').value;
@@ -264,19 +251,12 @@
         }
 
         function setTool(t) { currentTool = t; document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active')); document.getElementById('btn-'+t).classList.add('active'); }
-        function setBrushSize(s) { currentBrushSize = s; document.querySelectorAll('.brush-btn').forEach(b => b.classList.remove('active')); document.getElementById('b-' + (s === 'medium' ? 'med' : s)).classList.add('active'); }
         function toggleMenu(v) { ui.style.display = v ? 'flex' : 'none'; document.getElementById('show-menu-btn').style.display = v ? 'none' : 'block'; }
         function resetView() { panX = 0; panY = 0; zSlider.value = 1.0; updateView(); }
-        function saveState() { undoStack.push(ctx.getImageData(0, 0, side, side)); if (undoStack.length > 30) undoStack.shift(); redoStack = []; }
-        function undo() { if (undoStack.length > 0) { redoStack.push(ctx.getImageData(0, 0, side, side)); ctx.putImageData(undoStack.pop(), 0, 0); } }
-        function redo() { if (redoStack.length > 0) { undoStack.push(ctx.getImageData(0, 0, side, side)); ctx.putImageData(redoStack.pop(), 0, 0); } }
 
-        // SERVICE WORKER REGISTRATION (FOR OFFLINE / STORE COMPLIANCE)
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js')
-                    .then(reg => console.log('Service Worker Active'))
-                    .catch(err => console.log('Service Worker Error', err));
+                navigator.serviceWorker.register('sw.js').then(reg => console.log('SW Registered'));
             });
         }
     </script>
